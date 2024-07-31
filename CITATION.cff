@@ -1,0 +1,29 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Ferreira"
+  given-names: "Pedro"
+- family-names: "Cardita"
+  given-names: "Francisco"
+- family-names: "Castanheta"
+  given-names: "Afonso"
+- family-names: "Cruz"
+  given-names: "Henrique"
+- family-names: "Oliveira"
+  given-names: "Luís"
+- family-names: "Teixeira"
+  given-names: "Samuel"
+- family-names: "Pereira"
+  given-names: "Pedro"
+  orcid: "https://orcid.org/0009-0008-2335-8853"
+- family-names: "Escaleira"
+  given-names: "Pedro"
+  orcid: "https://orcid.org/0000-0001-9080-6080"
+- family-names: "Gomes"
+  given-names: "Diogo"
+  orcid: "https://orcid.org/0000-0002-5848-2802"
+title: "MEC in OSM"
+version: 0.9
+doi: 10.5281/zenodo.13145265
+date-released: 2024-07-31
+url: "https://github.com/ATNoG/osm-mec/tree/ieee-nfv-sdn-paper"
