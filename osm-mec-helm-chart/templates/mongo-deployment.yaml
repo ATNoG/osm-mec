@@ -1,34 +1,38 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   labels:
     app: mongo
   name: mongo
 spec:
+  serviceName: "mongo"
   replicas: 1
   selector:
     matchLabels:
       app: mongo
-  strategy:
-    type: Recreate
   template:
     metadata:
       labels:
         app: mongo
     spec:
       containers:
-        - env:
+        - name: mongo
+          image: mongo:4.4
+          env:
             - name: MONGO_INITDB_ROOT_PASSWORD
               value: pass
             - name: MONGO_INITDB_ROOT_USERNAME
               value: root
-          image: mongo
-          name: mongo
+          ports:
+            - containerPort: 27017
           volumeMounts:
-            - mountPath: /data/db
-              name: app-mongo-db-data
-      restartPolicy: Always
-      volumes:
-        - name: app-mongo-db-data
-          persistentVolumeClaim:
-            claimName: app-mongo-db-data
+            - name: app-mongo-db-data
+              mountPath: /data/db
+  volumeClaimTemplates:
+    - metadata:
+        name: app-mongo-db-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi

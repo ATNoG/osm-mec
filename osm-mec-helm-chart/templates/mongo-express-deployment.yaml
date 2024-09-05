@@ -15,7 +15,9 @@ spec:
         app: mongo-express
     spec:
       containers:
-        - env:
+        - name: mongo-express
+          image: mongo-express:latest
+          env:
             - name: ME_CONFIG_MONGODB_ADMINPASSWORD
               value: pass
             - name: ME_CONFIG_MONGODB_ADMINUSERNAME
@@ -24,9 +26,6 @@ spec:
               value: "true"
             - name: ME_CONFIG_MONGODB_URL
               value: mongodb://root:pass@mongo:27017/
-          image: mongo-express
-          name: mongo-express
           ports:
             - containerPort: 8081
               protocol: TCP
-      restartPolicy: Always

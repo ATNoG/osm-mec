@@ -29,13 +29,22 @@ def callback(message):
                 wait=wait,
             )
         instance_id = out[0]
-        print(get_osm_client().vnf.list(ns=instance_id))
         vnf_id = get_osm_client().vnf.list(ns=instance_id)[0]["_id"]
+        while True:
+            ns_instance = get_osm_client().ns.get(name=instance_id)
+            if ("deployed" in ns_instance["_admin"]
+                and "K8s" in ns_instance["_admin"]["deployed"]
+                and ns_instance["_admin"]["deployed"]["K8s"]
+                and len(ns_instance["_admin"]["deployed"]["K8s"]) > 0
+            ):
+                break
+        kdu_instance = ns_instance["_admin"]["deployed"]["K8s"][0]["kdu-instance"]
         DB._add(
             collection="appis",
             data={
                 "appi_id": instance_id,
                 "vnf_id": vnf_id,
+                "kdu_id": kdu_instance,
                 "name": name,
                 "description": description,
                 "vim_id": vim_id,
