@@ -1,0 +1,12 @@
+osm:
+  # your osm host
+  host: <osm_host>
+
+oss:
+  # host that will be shared by the cfs-portal to the client
+  host: <oss_host>
+
+kafka:
+  # kafka host (replace if using an external kafka or a different version of osm)
+  host: kafka.osm.svc.cluster.local
+  port: 9092

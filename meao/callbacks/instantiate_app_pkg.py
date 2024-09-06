@@ -12,6 +12,7 @@ def callback(message):
     vim_id = message.get("vim_id")
     name = message.get("name")
     description = message.get("description")
+    config = message.get("config")
     wait = message.get("wait")
 
     if app_pkg_id and vim_id and name and description:
@@ -26,6 +27,7 @@ def callback(message):
                 nsr_name=name,
                 account=vim_id,
                 description=description,
+                config=config,
                 wait=wait,
             )
         instance_id = out[0]

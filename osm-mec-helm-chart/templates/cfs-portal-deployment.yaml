@@ -18,8 +18,14 @@ spec:
     spec:
       containers:
         - env:
-            - name: CHOKIDAR_USEPOLLING
-              value: "true"
+          - name: CHOKIDAR_USEPOLLING
+            value: "true"
+          - name: REACT_APP_OSS_HOST
+            value: "{{ .Values.oss.host }}"
+          - name: REACT_APP_OSS_PORT
+            value: "8080"
+          - name: WDS_SOCKET_PORT
+            value: "8001"
           image: localhost:5000/cfs-portal:latest
           imagePullPolicy: Always
           name: cfs-portal

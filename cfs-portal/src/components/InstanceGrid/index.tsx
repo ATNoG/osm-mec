@@ -74,7 +74,7 @@ const InstanceGrid = ({ minimalConfig = false, instanceCount }: InstanceGridProp
     }, []);
 
     useEffect(() => {
-        const ws = new WebSocket('ws://10.255.32.88:8001');
+        const ws = new WebSocket('ws://'+ process.env.REACT_APP_OSS_HOST +':8001');
         setSocket(ws);
     }, []);
 

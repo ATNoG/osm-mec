@@ -19,13 +19,13 @@ spec:
       containers:
         - env:
             - name: KAFKA_BOOTSTRAP_SERVERS
-              value: 10.255.32.88:14000
+              value: {{ .Values.kafka.host }}:{{ .Values.kafka.port }}
             - name: MONGO_PASSWORD
               value: pass
             - name: MONGO_USER
               value: root
             - name: OSM_HOSTNAME
-              value: 10.255.32.88:9999
+              value: {{ .Values.osm.host }}:9999
           image: localhost:5000/meao:latest
           imagePullPolicy: Always
           name: meao
