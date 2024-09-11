@@ -5,7 +5,7 @@ metadata:
     app: cfs-portal
   name: cfs-portal
 spec:
-  replicas: 1
+  replicas: {{ .Values.cfsPortal.deployment.replicas }}
   selector:
     matchLabels:
       app: cfs-portal
@@ -23,16 +23,16 @@ spec:
           - name: REACT_APP_OSS_HOST
             value: "{{ .Values.oss.host }}"
           - name: REACT_APP_OSS_PORT
-            value: "8080"
+            value: "{{ .Values.oss.service.oss_port }}"
           - name: WDS_SOCKET_PORT
-            value: "8001"
-          image: localhost:5000/cfs-portal:latest
-          imagePullPolicy: Always
+            value: "{{ .Values.oss.service.ws_port }}"
+          image: {{ .Values.cfsPortal.deployment.image }}
+          imagePullPolicy: {{ .Values.cfsPortal.deployment.imagePullPolicy }}
           name: cfs-portal
           ports:
-            - containerPort: 3000
+            - containerPort: {{ .Values.cfsPortal.service.targetPort }}
               protocol: TCP
-      restartPolicy: Always
+      restartPolicy: {{ .Values.cfsPortal.deployment.restartPolicy }}
       volumes:
         - name: cfs-portal-claim0
           persistentVolumeClaim:

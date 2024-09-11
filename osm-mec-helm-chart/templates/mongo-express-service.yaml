@@ -7,8 +7,8 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-    - name: "8081"
-      port: 8081
-      targetPort: 8081
+    - name: mongo-express
+      port: {{ .Values.mongoExpress.service.port }}
+      targetPort: {{ .Values.mongoExpress.service.targetPort }}
   selector:
     app: mongo-express

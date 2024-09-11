@@ -5,7 +5,7 @@ metadata:
     app: oss
   name: oss
 spec:
-  replicas: 1
+  replicas: {{ .Values.oss.deployment.replicas }}
   selector:
     matchLabels:
       app: oss
@@ -19,23 +19,23 @@ spec:
       containers:
         - env:
             - name: KAFKA_BOOTSTRAP_SERVERS
-              value: {{ .Values.kafka.host }}:9999:{{ .Values.kafka.port }}
+              value: {{ .Values.kafka.host }}:{{ .Values.kafka.port }}
             - name: MONGO_PASSWORD
-              value: pass
+              value: {{ .Values.mongo.password }}
             - name: MONGO_USER
-              value: root
+              value: {{ .Values.mongo.username }}
             - name: OSM_HOSTNAME
-              value: {{ .Values.osm.host }}:9999
+              value: {{ .Values.osm.host }}
             - name: OSS_PORT
-              value: "8080"
+              value: "{{ .Values.oss.service.oss_port }}"
             - name: OSS_WS_PORT
-              value: "8001"
-          image: localhost:5000/oss:latest
-          imagePullPolicy: Always
+              value: "{{ .Values.oss.service.ws_port }}"
+          image: {{ .Values.oss.deployment.image }}
+          imagePullPolicy: {{ .Values.oss.deployment.imagePullPolicy }}
           name: oss
           ports:
-            - containerPort: 8080
+            - containerPort: {{ .Values.oss.service.oss_targetPort }}
               protocol: TCP
-            - containerPort: 8001
+            - containerPort: {{ .Values.oss.service.ws_targetPort }}
               protocol: TCP
-      restartPolicy: Always
+      restartPolicy: {{ .Values.oss.deployment.restartPolicy }}
