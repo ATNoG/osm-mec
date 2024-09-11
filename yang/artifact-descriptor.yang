@@ -12,6 +12,11 @@ module artifact-descriptor {
       description "Name of the artifact.";
     }
 
+    leaf helm-chart {
+      type string;
+      description "Helm chart path.";
+    }
+
     leaf description {
       type string;
       description "Description of the artifact.";

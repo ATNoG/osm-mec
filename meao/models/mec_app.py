@@ -8,6 +8,7 @@ from pyangbind.lib.yangtypes import YANGListType
 from pyangbind.lib.yangtypes import YANGDynClass
 from pyangbind.lib.yangtypes import ReferenceType
 from pyangbind.lib.yangtypes import YANGBinary
+from pyangbind.lib.yangtypes import YANGBitsType
 from pyangbind.lib.base import PybindBase
 from collections import OrderedDict
 from decimal import Decimal
@@ -14237,7 +14238,7 @@ class yc_artifacts_mec_app_descriptor__mec_appd_artifacts(PybindBase):
 
   YANG Description: List of artifacts required by the MEC application.
   """
-  __slots__ = ('_path_helper', '_extmethods', '__name','__description','__type','__file',)
+  __slots__ = ('_path_helper', '_extmethods', '__name','__helm_chart','__description','__type','__file',)
 
   _yang_name = 'artifacts'
   _yang_namespace = 'http://example.com/ns/mec-app-descriptor'
@@ -14250,6 +14251,7 @@ class yc_artifacts_mec_app_descriptor__mec_appd_artifacts(PybindBase):
 
     self._extmethods = False
     self.__name = YANGDynClass(base=six.text_type, is_leaf=True, yang_name="name", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, is_keyval=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='string', is_config=True)
+    self.__helm_chart = YANGDynClass(base=six.text_type, is_leaf=True, yang_name="helm-chart", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='string', is_config=True)
     self.__description = YANGDynClass(base=six.text_type, is_leaf=True, yang_name="description", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='string', is_config=True)
     self.__type = YANGDynClass(base=six.text_type, is_leaf=True, yang_name="type", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='string', is_config=True)
     self.__file = YANGDynClass(base=six.text_type, is_leaf=True, yang_name="file", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='string', is_config=True)
@@ -14321,6 +14323,43 @@ class yc_artifacts_mec_app_descriptor__mec_appd_artifacts(PybindBase):
 
   def _unset_name(self):
     self.__name = YANGDynClass(base=six.text_type, is_leaf=True, yang_name="name", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, is_keyval=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='string', is_config=True)
+
+
+  def _get_helm_chart(self):
+    """
+    Getter method for helm_chart, mapped from YANG variable /mec_appd/artifacts/helm_chart (string)
+
+    YANG Description: Helm chart path.
+    """
+    return self.__helm_chart
+      
+  def _set_helm_chart(self, v, load=False):
+    """
+    Setter method for helm_chart, mapped from YANG variable /mec_appd/artifacts/helm_chart (string)
+    If this variable is read-only (config: false) in the
+    source YANG file, then _set_helm_chart is considered as a private
+    method. Backends looking to populate this variable should
+    do so via calling thisObj._set_helm_chart() directly.
+
+    YANG Description: Helm chart path.
+    """
+    if hasattr(v, "_utype"):
+      v = v._utype(v)
+    try:
+      t = YANGDynClass(v,base=six.text_type, is_leaf=True, yang_name="helm-chart", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='string', is_config=True)
+    except (TypeError, ValueError):
+      raise ValueError({
+          'error-string': """helm_chart must be of a type compatible with string""",
+          'defined-type': "string",
+          'generated-type': """YANGDynClass(base=six.text_type, is_leaf=True, yang_name="helm-chart", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='string', is_config=True)""",
+        })
+
+    self.__helm_chart = t
+    if hasattr(self, '_set'):
+      self._set()
+
+  def _unset_helm_chart(self):
+    self.__helm_chart = YANGDynClass(base=six.text_type, is_leaf=True, yang_name="helm-chart", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='string', is_config=True)
 
 
   def _get_description(self):
@@ -14434,12 +14473,13 @@ class yc_artifacts_mec_app_descriptor__mec_appd_artifacts(PybindBase):
     self.__file = YANGDynClass(base=six.text_type, is_leaf=True, yang_name="file", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='string', is_config=True)
 
   name = __builtin__.property(_get_name, _set_name)
+  helm_chart = __builtin__.property(_get_helm_chart, _set_helm_chart)
   description = __builtin__.property(_get_description, _set_description)
   type = __builtin__.property(_get_type, _set_type)
   file = __builtin__.property(_get_file, _set_file)
 
 
-  _pyangbind_elements = OrderedDict([('name', name), ('description', description), ('type', type), ('file', file), ])
+  _pyangbind_elements = OrderedDict([('name', name), ('helm_chart', helm_chart), ('description', description), ('type', type), ('file', file), ])
 
 
 class yc_mec_appd_mec_app_descriptor__mec_appd(PybindBase):
