@@ -24,7 +24,7 @@ spec:
             value: "{{ .Values.oss.host }}"
           - name: REACT_APP_OSS_PORT
             value: "{{ .Values.oss.service.oss_port }}"
-          - name: WDS_SOCKET_PORT
+          - name: REACT_APP_WS_SOCKET_PORT
             value: "{{ .Values.oss.service.ws_port }}"
           image: {{ .Values.cfsPortal.deployment.image }}
           imagePullPolicy: {{ .Values.cfsPortal.deployment.imagePullPolicy }}
