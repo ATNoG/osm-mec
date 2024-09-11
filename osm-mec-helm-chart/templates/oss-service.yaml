@@ -5,15 +5,13 @@ metadata:
     app: oss
   name: oss
 spec:
-  type: NodePort
+  type: {{ .Values.oss.service.type }}
   ports:
-    - name: "8080"
-      port: 8080
-      targetPort: 8080
-      nodePort: 8080
-    - name: "8001"
-      port: 8001
-      targetPort: 8001
-      nodePort: 8001
+    - name: "oss"
+      port: {{ .Values.oss.service.oss_port }}
+      targetPort: {{ .Values.oss.service.oss_targetPort }}
+    - name: "ws"
+      port: {{ .Values.oss.service.ws_port }}
+      targetPort: {{ .Values.oss.service.ws_targetPort }}
   selector:
     app: oss

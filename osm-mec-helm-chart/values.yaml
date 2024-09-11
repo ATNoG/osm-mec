@@ -1,0 +1,62 @@
+osm:
+  # your osm host
+  host: nbi.localhost.nip.io  # REPLACE
+
+oss:
+  # host that will be shared by the cfs-portal to the client
+  host: localhost # REPLACE
+  deployment:
+    replicas: 1
+    image: localhost:5000/oss:latest
+    imagePullPolicy: Always
+    restartPolicy: Always
+  service:
+    type: LoadBalancer
+    oss_port: 8080
+    oss_targetPort: 8080
+    ws_port: 8001
+    ws_targetPort: 8001
+
+kafka:
+  # kafka host (replace if using an external kafka or a different version of osm)
+  host: kafka-controller-headless.osm.svc.cluster.local # REPLACE
+  port: 9092
+
+cfsPortal:
+  deployment:
+    replicas: 1
+    image: localhost:5000/cfs-portal:latest
+    imagePullPolicy: Always
+    restartPolicy: Always
+  service:
+    type: NodePort
+    port: 3000
+    targetPort: 3000
+    nodePort: 30000
+
+meao:
+  deployment:
+    replicas: 1
+    image: localhost:5000/meao:latest
+    imagePullPolicy: Always
+    restartPolicy: Always
+
+mongo:
+  deployment:
+    replicas: 1
+    image: mongo:4.4
+  service:
+    port: 27017
+    targetPort: 27017
+  password: pass
+  username: root
+
+mongoExpress:
+  deployment:
+    replicas: 1
+    image: mongo-express:latest
+  service:
+    port: 8081
+    targetPort: 8081
+  password: pass
+  username: root

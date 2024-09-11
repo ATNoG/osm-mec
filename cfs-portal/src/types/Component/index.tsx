@@ -85,7 +85,8 @@ export type DropdownButtonProps = {
 export type FormDialogField = {
   id: string,
   label: string,
-  type: 'text' | 'select',
+  type: 'text' | 'select' | 'textarea',
+  rows?: number,
   options?: string[],
   required: boolean
 }

@@ -5,7 +5,7 @@ metadata:
     app: meao
   name: meao
 spec:
-  replicas: 1
+  replicas: {{ .Values.meao.deployment.replicas }}
   selector:
     matchLabels:
       app: meao
@@ -19,14 +19,14 @@ spec:
       containers:
         - env:
             - name: KAFKA_BOOTSTRAP_SERVERS
-              value: 10.255.32.88:14000
+              value: {{ .Values.kafka.host }}:{{ .Values.kafka.port }}
             - name: MONGO_PASSWORD
-              value: pass
+              value: {{ .Values.mongo.password }}
             - name: MONGO_USER
-              value: root
+              value: {{ .Values.mongo.username }}
             - name: OSM_HOSTNAME
-              value: 10.255.32.88:9999
-          image: localhost:5000/meao:latest
-          imagePullPolicy: Always
+              value: {{ .Values.osm.host }}
+          image: {{ .Values.meao.deployment.image }}
+          imagePullPolicy: {{ .Values.meao.deployment.imagePullPolicy }}
           name: meao
-      restartPolicy: Always
+      restartPolicy: {{ .Values.meao.deployment.restartPolicy }}

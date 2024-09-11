@@ -129,8 +129,8 @@ class AppdParser:
 
             kdu_list.append(
                 {
-                    "name": str(key) + "-kdu",
-                    "helm-chart": str(key),
+                    "name": str(kdu["name"]),
+                    "helm-chart": str(kdu["helm-chart"]) if kdu["helm-chart"] != "" else str(kdu["name"]),
                     "helm-version": str(helm_version),
                 }
             )

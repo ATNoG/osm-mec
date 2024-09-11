@@ -54,6 +54,13 @@ const AppCatalog = () => {
             options: vimData.map((vim_id) => vim_id.name),
             required: true,
         },
+        {
+            id: 'config',
+            label: 'Config',
+            type: 'textarea',
+            rows: 5,
+            required: false,
+        }
     ];
 
     const columns: GridColDef[] = [

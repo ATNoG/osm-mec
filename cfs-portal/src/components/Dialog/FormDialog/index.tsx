@@ -41,6 +41,18 @@ const FormDialog = ({ open, onClose, onSubmit, title, fields }: FormDialogProps)
                                 required={field.required}
                                 onChange={handleChange}
                             />
+                        ) : field.type === 'textarea' ? (
+                            <TextField
+                                key={field.id}
+                                margin='dense'
+                                name={field.id}
+                                label={field.label}
+                                fullWidth
+                                required={field.required}
+                                multiline
+                                rows={field.rows || 4}
+                                onChange={handleChange}
+                            />
                         ) : (
                             <TextField
                                 select

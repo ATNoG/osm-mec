@@ -5,11 +5,11 @@ metadata:
     app: cfs-portal
   name: cfs-portal
 spec:
-  type: NodePort
+  type: {{ .Values.cfsPortal.service.type }}
   ports:
-    - name: "3000"
-      port: 3000
-      targetPort: 3000
-      nodePort: 30000
+    - name: "cfs-portal"
+      port: {{ .Values.cfsPortal.service.port }}
+      targetPort: {{ .Values.cfsPortal.service.targetPort }}
+      nodePort: {{ .Values.cfsPortal.service.nodePort }}
   selector:
     app: cfs-portal
