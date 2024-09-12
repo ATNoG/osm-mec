@@ -23,6 +23,7 @@ kafka:
   port: 9092
 
 cfsPortal:
+  enabled: true
   deployment:
     replicas: 1
     image: localhost:5000/cfs-portal:latest
