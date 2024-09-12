@@ -41,7 +41,7 @@ jobs:
         run: |
           # include/exlude subdirectories/files not capable of being configured in jekyll _config.yaml
           mkdir -p /tmp/site
-          cp -t /tmp/site -r README.md osm-mec-logo.png docs _site/index.html
+          cp -t /tmp/site -r README.md osm-mec-logo.png docs _site/index.html _site/assets
 
           # Generate yang documentation
           cd yang
