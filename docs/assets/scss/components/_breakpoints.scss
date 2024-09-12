@@ -24,7 +24,7 @@
         }
     }
 
-    .product__container{
+    .team__container{
         grid-template-columns: .6fr;
         justify-content: center;
     }
@@ -37,7 +37,7 @@
             grid-template-columns: repeat(2, 1fr);
         }
     }
-    .product{
+    .team{
         &__description{
             padding: 0 4rem;
         }
@@ -78,7 +78,7 @@
     .home__container,
     .about__container,
     .questions__container,
-    .contact__container,
+    .credits__container,
     .footer__container{
         grid-template-columns: repeat(2, 1fr);
     }
@@ -155,7 +155,7 @@
         }
     }
 
-    .product{
+    .team{
         &__description{
             padding: 0 16rem;
         }

@@ -143,7 +143,7 @@ the website, in dark theme
   background-color: var(--first-color-dark);
 }
 
-.dark-theme .product__circle,
+.dark-theme .team__circle,
 .dark-theme .footer__subscribe{
   background-color: var(--container-color);
 }
@@ -490,23 +490,23 @@ the website, in dark theme
   transform: translateY(-.25rem);
 }
 
-/*=============== PRODUCTS ===============*/
-.product__description{
+/*=============== TEAM ===============*/
+.team__description{
   text-align: center;
 }
 
-.product__container{
+.team__container{
   padding: 3rem 0;
   grid-template-columns: repeat(2, 1fr);
   gap: 2.5rem 3rem;
 }
 
-.product__card{
+.team__card{
   display: grid;
   position: relative;
 }
 
-.product__img{
+.team__img{
   position: relative;
   width: 350px;
   justify-self: center;
@@ -514,18 +514,18 @@ the website, in dark theme
   transition: .3s;
 }
 
-.product__title,
-.product__price{
+.team__title,
+.team__price{
   font-size: var(--small-font-size);
   font-weight: var(--font-semi-bold);
   color: var(--title-color);
 }
 
-.product__title{
+.team__title{
   margin-bottom: .25rem;
 }
 
-.product__button{
+.team__button{
   position: absolute;
   right: 0;
   bottom: 0;
@@ -536,11 +536,11 @@ the website, in dark theme
   font-size: 1.15rem;
 }
 
-.product__button:hover{
+.team__button:hover{
   background-color: var(--first-color-alt);
 }
 
-.product__circle{
+.team__circle{
   width: 90px;
   height: 90px;
   background-color: var(--first-color-lighten);
@@ -550,7 +550,7 @@ the website, in dark theme
   left: 5%;
 }
 
-.product__card:hover .product__img{
+.team__card:hover .team__img{
   transform: translateY(-.5rem);
 }
 
@@ -632,24 +632,24 @@ the website, in dark theme
   transform: rotate(45deg);
 }
 
-/*=============== CONTACT ===============*/
-.contact__container{
+/*=============== CREDIT ===============*/
+.credits__container{
   row-gap: 3.5rem;
 }
 
-.contact__data{
+.credits__data{
   display: grid;
   row-gap: 2rem;
 }
 
-.contact__subtitle{
+.credits__subtitle{
   font-size: var(--normal-font-size);
   font-weight: var(--font-medium);
   color: var(--text-color);
   margin-bottom: var(--mb-0-5);
 }
 
-.contact__description{
+.credits__description{
   display: inline-flex;
   align-items: center;
   column-gap: .5rem;
@@ -658,23 +658,23 @@ the website, in dark theme
   text-align: justify;
 }
 
-.contact__icon{
+.credits__icon{
   font-size: 1.25rem;
 }
 
-.contact__inputs{
+.credits__inputs{
   display: grid;
   row-gap: 2rem;
   margin-bottom: var(--mb-2-5);
 }
 
-.contact__content{
+.credits__content{
   position: relative;
   height: 3rem;
   border-bottom: 1px solid var(--text-color-light);
 }
 
-.contact__input{
+.credits__input{
   position: absolute;
   top: 0;
   left: 0;
@@ -691,7 +691,7 @@ the website, in dark theme
   z-index: 1;
 }
 
-.contact__label{
+.credits__label{
   position: absolute;
   top: .75rem;
   width: 100%;
@@ -700,16 +700,33 @@ the website, in dark theme
   transition: .3s;
 }
 
-.contact__area{
+.credits__header{
+  display: flex;
+  align-items: center;
+  column-gap: .5rem;
+  padding: .75rem .5rem;
+  cursor: pointer;
+}
+
+.credits__item,
+.credits__header,
+.credits__item-title,
+.credits__icon,
+.credits__description,
+.credits__content{
+  transition: .3s;
+}
+
+.credits__area{
   height: 7rem;
 }
 
-.contact__area textarea{
+.credits__area textarea{
   resize: none;
 }
 
 /*Input focus move up label*/
-.contact__input:focus + .contact__label{
+.credits__input:focus + .credits__label{
   top: -.75rem;
   left: 0;
   font-size: var(--smaller-font-size);
@@ -717,7 +734,7 @@ the website, in dark theme
 }
 
 /*Input focus sticky top label*/
-.contact__input:not(:placeholder-shown).contact__input:not(:focus) + .contact__label{
+.credits__input:not(:placeholder-shown).credits__input:not(:focus) + .credits__label{
   top: -.75rem;
   font-size: var(--smaller-font-size);
   z-index: 10;
@@ -877,7 +894,7 @@ the website, in dark theme
     padding: 1.5rem;
   }
 
-  .product__container{
+  .team__container{
     grid-template-columns: .6fr;
     justify-content: center;
   }
@@ -889,10 +906,10 @@ the website, in dark theme
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .product__description{
+  .team__description{
     padding: 0 4rem;
   }
-  .product__container{
+  .team__container{
     grid-template-columns: repeat(2, 230px);
     justify-content: center;
     column-gap: 5rem;
@@ -927,7 +944,7 @@ the website, in dark theme
   .home__container,
   .about__container,
   .questions__container,
-  .contact__container,
+  .credits__container,
   .footer__container{
     grid-template-columns: repeat(2, 1fr);
   }
@@ -997,23 +1014,23 @@ the website, in dark theme
     font-size: var(--normal-font-size);
   }
 
-  .product__description{
+  .team__description{
     padding: 0 16rem;
   }
-  .product__container{
+  .team__container{
     padding: 4rem 0;
     grid-template-columns: repeat(3, 300px);
     gap: 4rem 6rem;
   }
-  .product__img{
+  .team__img{
     width: 400px;
   }
-  .product__circle{
+  .team__circle{
     width: 110px;
     height: 110px;
   }
-  .product__title,
-  .product__price{
+  .team__title,
+  .team__price{
     font-size: var(--normal-font-size);
   }
 

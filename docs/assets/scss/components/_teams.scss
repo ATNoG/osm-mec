@@ -1,5 +1,5 @@
-/*=============== PRODUCTS ===============*/
-.product{
+/*=============== TEAM ===============*/
+.team{
     &__description{
         text-align: center;
     }
@@ -12,7 +12,7 @@
         display: grid;
         position: relative;
 
-        &:hover .product__img{
+        &:hover .team__img{
             transform: translateY(-.5rem);
         }
     }
