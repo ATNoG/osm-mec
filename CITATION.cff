@@ -23,7 +23,7 @@ authors:
   given-names: "Diogo"
   orcid: "https://orcid.org/0000-0002-5848-2802"
 title: "MEC in OSM"
-version: 0.9
-doi: 10.5281/zenodo.13145265
-date-released: 2024-07-31
+version: 1.1
+doi: 10.5281/zenodo.13862189
+date-released: 2024-09-30
 url: "https://github.com/ATNoG/osm-mec/tree/ieee-nfv-sdn-paper"
