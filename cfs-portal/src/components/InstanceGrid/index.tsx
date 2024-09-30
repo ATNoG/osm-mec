@@ -86,22 +86,22 @@ const InstanceGrid = ({ minimalConfig = false, instanceCount }: InstanceGridProp
             socket.onmessage = (event) => {
                 const data = JSON.parse(event.data);
                 setMetrics((prevMetrics) => {
-                    console.log(data)
                     console.log(prevMetrics)
-                    if(data.appi_id != undefined){
+                    if(data.appi_id !== undefined){
                         if(!prevMetrics){
                             prevMetrics = {}
                         }
                         if (!(data.appi_id in prevMetrics)){
                             prevMetrics[data.appi_id] = {}
                         }
-                        if (data.mem_load != undefined && data.cpu_load != undefined) {
+                        if (data.mem_load !== undefined && data.cpu_load !== undefined && data.warning !== undefined) {
                             return {
                                 ...prevMetrics,
                                 [data.appi_id]: {
                                     ...prevMetrics[data.appi_id],
                                     memLoad: data.mem_load,
                                     cpuLoad: data.cpu_load,
+                                    warning: data.warning,
                                 }
                             };
                         }
@@ -170,7 +170,7 @@ const InstanceGrid = ({ minimalConfig = false, instanceCount }: InstanceGridProp
                 const node = metrics && metrics[params.row.id as string]?.node;
                 return (
                     <Box sx={{ position: 'relative', width: '100%' }}>
-                        {node != undefined ? (
+                        {node !== undefined ? (
                             <>
                                 <Typography
                                     variant="body2"
@@ -195,7 +195,7 @@ const InstanceGrid = ({ minimalConfig = false, instanceCount }: InstanceGridProp
                 const lat = metrics && metrics[params.row.id as string]?.lat;
                 return (
                     <Box sx={{ position: 'relative', width: '100%' }}>
-                        {lat != undefined ? (
+                        {lat !== undefined ? (
                             <>
                                 <LinearProgress
                                     variant="determinate"
@@ -237,7 +237,7 @@ const InstanceGrid = ({ minimalConfig = false, instanceCount }: InstanceGridProp
 
                 return (
                     <Box sx={{ position: 'relative', width: '100%' }}>
-                        {memLoad != undefined ? (
+                        {memLoad !== undefined ? (
                             <>
                                 <LinearProgress
                                     variant="determinate"
@@ -279,7 +279,7 @@ const InstanceGrid = ({ minimalConfig = false, instanceCount }: InstanceGridProp
 
                 return (
                     <Box sx={{ position: 'relative', width: '100%' }}>
-                        {cpuLoad != undefined ? (
+                        {cpuLoad !== undefined ? (
                             <>
                                 <LinearProgress
                                     variant="determinate"
@@ -337,7 +337,27 @@ const InstanceGrid = ({ minimalConfig = false, instanceCount }: InstanceGridProp
             field: 'config-status',
             headerName: 'Config Status',
             width: 100,
+            headerAlign: 'center',
             renderCell: (params: any) => renderConfigStatus(params.row['config-status'] as ConfigStatus)
+        }],
+        ...minimalConfig ? [] : [{
+            field: 'warnings',
+            headerName: '',
+            width: 100,
+            renderCell: (params: any) => {
+                const warning = metrics && metrics[params.row.id as string]?.warning;
+        
+                if (warning !== undefined && warning !== null) {
+                    return (
+                        <Tooltip title={warning}>
+                            <Box display="flex" alignItems="center" justifyContent="center">
+                                {renderOperationalStatus(OperationalStatus.FAILED)}
+                            </Box>
+                        </Tooltip>
+                    );
+                }
+        
+            }
         }],
         ...minimalConfig ? [] : [{
             field: 'actions',

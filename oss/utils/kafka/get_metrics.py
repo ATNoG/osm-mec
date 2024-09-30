@@ -1,4 +1,4 @@
-from ..container_info_thread import containers
+from ..threads.mec_apps_thread import containers
 
 
 def callback(data):

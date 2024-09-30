@@ -1,4 +1,4 @@
-from ...threads.container_info_thread import containers
+from ...threads.mec_apps_thread import containers
 from ...threads.websocket_service_thread import metrics_queue
 
 
@@ -12,6 +12,7 @@ def callback(data):
                 "appi_id": appi_id,
                 "mem_load": get_mem_load(data, node_specs),
                 "cpu_load": get_cpu_load(data, node_specs, container_id),
+                "warning" : containers[container_id]["warning"]["msg"],
             }
 
             metrics_queue.put(metrics)

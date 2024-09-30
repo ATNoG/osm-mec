@@ -7,8 +7,9 @@ from utils.cherrypy_utils import jsonify_error
 from utils.kafka.callbacks.error_handler import callback as error_handler
 from utils.kafka.callbacks.get_metrics import callback as get_metrics
 from utils.kafka.callbacks.get_latency import callback as get_latency
-from utils.threads import (ContainerInfoThread, KafkaConsumerThread,
-                           WebSocketServiceThread)
+from utils.kafka.callbacks.get_container_info import callback as get_container_info
+from utils.threads import (KafkaConsumerThread,
+                           WebSocketServiceThread, SendMECAppsThread)
 
 
 def main():
@@ -17,8 +18,9 @@ def main():
     KafkaConsumerThread(cherrypy.engine, "responses", error_handler).subscribe()
     KafkaConsumerThread(cherrypy.engine, "k8s-cluster", get_metrics).subscribe()
     KafkaConsumerThread(cherrypy.engine, "ue-lat", get_latency).subscribe()
-    ContainerInfoThread(cherrypy.engine).subscribe()
+    KafkaConsumerThread(cherrypy.engine, "meao-oss", get_container_info).subscribe()
     WebSocketServiceThread(cherrypy.engine).subscribe()
+    SendMECAppsThread(cherrypy.engine).subscribe()
 
     dispatcher = set_routes()
 
