@@ -24,7 +24,7 @@ concurrency:
 jobs:
   # Build job
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -53,6 +53,18 @@ jobs:
           sed -i 's|<a href="[^"]*">|<a href="https://atnog.github.io/osm-mec/docs/index.html">|' /tmp/site/mec-app-descriptor-parameters.html
           # Replace the img tag with the new logo image
           sed -i 's|<img src="[^"]*"[^>]*>|<img src="https://atnog.github.io/osm-mec/osm-mec-logo.png" alt="OSM MEC" style="width:150px;height:43.125px;" />|' /tmp/site/mec-app-descriptor-parameters.html
+
+          # Install helm
+          curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
+          chmod 700 get_helm.sh
+          ./get_helm.sh
+
+          # Generate helm chart
+          helm package osm-mec-helm-chart -d /tmp/site
+
+          # Generate index.yaml
+          helm repo index /tmp/site --url https://ATNoG.github.io/osm-mec
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
@@ -63,7 +75,7 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: build
     steps:
       - name: Deploy to GitHub Pages
