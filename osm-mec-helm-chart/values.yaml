@@ -3,8 +3,8 @@ osm:
   host: nbi.localhost.nip.io  # REPLACE
 
 oss:
+  enabled: true
   # host that will be shared by the cfs-portal to the client
-  host: localhost # REPLACE
   deployment:
     replicas: 1
     image: ghcr.io/atnog/osm-mec/oss:main
@@ -18,12 +18,14 @@ oss:
     ws_targetPort: 8001
 
 kafka:
+  enabled: true
   # kafka host (replace if using an external kafka or a different version of osm)
-  host: kafka-controller-headless.osm.svc.cluster.local # REPLACE
+  host: kafka.osm.svc.cluster.local # REPLACE
   port: 9092
 
 cfsPortal:
   enabled: true
+  ossHost: localhost # REPLACE
   deployment:
     replicas: 1
     image: ghcr.io/atnog/osm-mec/cfs-portal:main
@@ -36,6 +38,7 @@ cfsPortal:
     nodePort: 30000
 
 meao:
+  enabled: true
   deployment:
     replicas: 1
     image: ghcr.io/atnog/osm-mec/meao:main
@@ -43,6 +46,7 @@ meao:
     restartPolicy: Always
 
 mongo:
+  enabled: true
   deployment:
     replicas: 1
     image: mongo:4.4
@@ -53,6 +57,7 @@ mongo:
   username: root
 
 mongoExpress:
+  enabled: true
   deployment:
     replicas: 1
     image: mongo-express:latest

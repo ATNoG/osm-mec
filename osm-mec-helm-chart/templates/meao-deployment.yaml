@@ -1,3 +1,4 @@
+{{ if .Values.meao.enabled -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -30,3 +31,4 @@ spec:
           imagePullPolicy: {{ .Values.meao.deployment.imagePullPolicy }}
           name: meao
       restartPolicy: {{ .Values.meao.deployment.restartPolicy }}
+{{- end }}

@@ -1,3 +1,4 @@
+{{ if .Values.oss.enabled -}}
 apiVersion: v1
 kind: Service
 metadata:
@@ -15,3 +16,4 @@ spec:
       targetPort: {{ .Values.oss.service.ws_targetPort }}
   selector:
     app: oss
+{{- end }}

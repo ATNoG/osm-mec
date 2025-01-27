@@ -22,7 +22,7 @@ spec:
           - name: CHOKIDAR_USEPOLLING
             value: "true"
           - name: REACT_APP_OSS_HOST
-            value: "{{ .Values.oss.host }}"
+            value: "{{ .Values.cfsPortal.ossHost }}"
           - name: REACT_APP_OSS_PORT
             value: "{{ .Values.oss.service.oss_port }}"
           - name: REACT_APP_WS_SOCKET_PORT

@@ -1,3 +1,4 @@
+{{ if .Values.oss.enabled -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -39,3 +40,4 @@ spec:
             - containerPort: {{ .Values.oss.service.ws_targetPort }}
               protocol: TCP
       restartPolicy: {{ .Values.oss.deployment.restartPolicy }}
+{{- end }}
