@@ -7,7 +7,7 @@ oss:
   host: localhost # REPLACE
   deployment:
     replicas: 1
-    image: localhost:5000/oss:latest
+    image: ghcr.io/atnog/osm-mec/oss:main
     imagePullPolicy: Always
     restartPolicy: Always
   service:
@@ -26,7 +26,7 @@ cfsPortal:
   enabled: true
   deployment:
     replicas: 1
-    image: localhost:5000/cfs-portal:latest
+    image: ghcr.io/atnog/osm-mec/cfs-portal:main
     imagePullPolicy: Always
     restartPolicy: Always
   service:
@@ -38,7 +38,7 @@ cfsPortal:
 meao:
   deployment:
     replicas: 1
-    image: localhost:5000/meao:latest
+    image: ghcr.io/atnog/osm-mec/meao:main
     imagePullPolicy: Always
     restartPolicy: Always
 
