@@ -14,6 +14,7 @@
   **<kbd> <br> [MEC APP descriptor Parameters](https://atnog.github.io/osm-mec/mec-app-descriptor-parameters) <br> </kbd>**
   **<kbd> <br> [Website](https://atnog.github.io/osm-mec/) <br> </kbd>**
   **<kbd> <br> [Poster](students-at-deti-poster.pdf) <br> </kbd>**
+  **<kbd> <br> [HELM index](https://atnog.github.io/osm-mec/index.yaml) <br> </kbd>**
 
 </div>
 
