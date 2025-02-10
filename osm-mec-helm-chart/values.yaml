@@ -18,10 +18,20 @@ oss:
     ws_targetPort: 8001
 
 kafka:
-  enabled: true
-  # kafka host (replace if using an external kafka or a different version of osm)
-  host: kafka.osm.svc.cluster.local # REPLACE
-  port: 9092
+  KAFKA_PRODUCER_CONFIG:
+    bootstrap_servers: "kafka-controller-headless.osm.svc.cluster.local:9094"
+    security_protocol: "SASL_PLAINTEXT"
+    sasl_mechanism: "PLAIN"
+    sasl_plain_username: "user1"
+    sasl_plain_password: "admin"
+  KAFKA_CONSUMER_CONFIG:
+    bootstrap_servers: "kafka-controller-headless.osm.svc.cluster.local:9094"
+    group_id: "group"
+    auto_offset_reset: "latest"
+    security_protocol: "SASL_PLAINTEXT"
+    sasl_mechanism: "PLAIN"
+    sasl_plain_username: "user1"
+    sasl_plain_password: "admin"
 
 cfsPortal:
   enabled: true

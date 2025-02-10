@@ -1,3 +1,5 @@
+*Tested with OSM Release 17*
+
 ![osm-logo](osm-mec-logo.png)
 
 <div align="center">

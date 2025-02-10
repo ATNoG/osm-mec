@@ -7,19 +7,19 @@ from kafka import KafkaConsumer, KafkaProducer
 
 from .callbacks.error_handler import responses
 
+kafka_producer_config = json.loads(os.environ.get("KAFKA_PRODUCER_CONFIG", '{"bootstrap_servers": "localhost:9092"}'))
+kafka_consumer_config = json.loads(os.environ.get("KAFKA_CONSUMER_CONFIG", '{"bootstrap_servers": "localhost:9092", "group_id": "monitoring", "auto_offset_reset": "latest"}'))
+
 producer = KafkaProducer(
-    bootstrap_servers=os.getenv("KAFKA_BOOTSTRAP_SERVERS"),
+    **kafka_producer_config,
     value_serializer=lambda v: json.dumps(v).encode("utf-8"),
 )
-
 
 class KafkaUtils:
     @staticmethod
     def create_consumer(topics):
         consumer = KafkaConsumer(
-            bootstrap_servers=os.getenv("KAFKA_BOOTSTRAP_SERVERS"),
-            group_id="group",
-            auto_offset_reset="earliest",
+            **kafka_consumer_config,
             value_deserializer=lambda x: json.loads(x.decode("utf-8")),
         )
         consumer.subscribe(topics=topics)

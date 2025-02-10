@@ -19,8 +19,10 @@ spec:
     spec:
       containers:
         - env:
-            - name: KAFKA_BOOTSTRAP_SERVERS
-              value: {{ .Values.kafka.host }}:{{ .Values.kafka.port }}
+            - name: KAFKA_PRODUCER_CONFIG
+              value: '{{ .Values.kafka.KAFKA_PRODUCER_CONFIG | toJson }}'
+            - name: KAFKA_CONSUMER_CONFIG
+              value: '{{ .Values.kafka.KAFKA_CONSUMER_CONFIG | toJson }}'
             - name: MONGO_PASSWORD
               value: {{ .Values.mongo.password }}
             - name: MONGO_USER
