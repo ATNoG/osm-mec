@@ -60,7 +60,7 @@ jobs:
           ./get_helm.sh
 
           # Generate helm chart
-          helm package osm-mec-helm-chart -d /tmp/site
+          helm package deployment/helm-chart -d /tmp/site
 
           # Generate index.yaml
           helm repo index /tmp/site --url https://ATNoG.github.io/osm-mec
