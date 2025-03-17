@@ -22,7 +22,7 @@ spec:
             - name: KAFKA_PRODUCER_CONFIG
               value: '{{ .Values.kafka.KAFKA_PRODUCER_CONFIG | toJson }}'
             - name: KAFKA_CONSUMER_CONFIG
-              value: '{{ .Values.kafka.KAFKA_CONSUMER_CONFIG | toJson }}'
+              value: '{{ .Values.kafka.KAFKA_CONSUMER_CONFIG | merge (dict "group_id" .Values.oss.deployment.env.KAFKA_GROUP_ID) | toJson }}'
             - name: MONGO_PASSWORD
               value: {{ .Values.mongo.password }}
             - name: MONGO_USER

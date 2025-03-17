@@ -1,1 +1,1 @@
-from .kafka_utils import KafkaUtils, producer
+from .kafka_utils import KafkaUtils

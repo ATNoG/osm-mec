@@ -3,9 +3,9 @@ from utils.appd_validation import *
 from utils.cherrypy_utils import is_valid_id
 from utils.db import DB
 from utils.file_management import *
-from utils.kafka import KafkaUtils, producer
+from utils.kafka.kafka_utils import KafkaUtils
 from views.app_pkg import AppPkgView
-
+from . import kafka_producer_config
 
 class AppPkgController:
     def __init__(self):
@@ -16,8 +16,7 @@ class AppPkgController:
             "update_app_pkg",
             "instantiate_app_pkg",
         ]
-        self.producer = producer
-        self.consumer = KafkaUtils.create_consumer(self.topics)
+        self.producer = KafkaUtils.create_producer(kafka_producer_config)
 
     @cherrypy.tools.json_out()
     def list_app_pkgs(self):
@@ -52,12 +51,15 @@ class AppPkgController:
         )
 
         try:
+            print("Sending message to Kafka")
             msg_id = KafkaUtils.send_message(
                 self.producer,
                 "new_app_pkg",
                 {"app_pkg_id": app_pkg_id},
             )
+            print("Sent:", {"app_pkg_id": app_pkg_id})
             response = KafkaUtils.wait_for_response(msg_id)
+            print("Received response:", response)
 
             cherrypy.response.status = response["status"]
             return {"id": app_pkg_id}

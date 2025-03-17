@@ -2,18 +2,18 @@ import cherrypy
 from utils.cherrypy_utils import is_valid_uuid
 from utils.cherrypy_utils import is_valid_id
 from utils.db import DB
-from utils.kafka import KafkaUtils, producer
+from utils.kafka import KafkaUtils
 from utils.osm import get_osm_client
 from views.appi import AppiView
-import json
+from . import kafka_producer_config, kafka_consumer_config
 
 
 class AppiController:
     def __init__(self):
         self.topics = ["terminate_app_pkg"]
-        self.producer = producer
-        self.consumer = KafkaUtils.create_consumer(self.topics)
         self.collection = "appis"
+        self.producer = KafkaUtils.create_producer(kafka_producer_config)
+        self.consumer = KafkaUtils.create_consumer(kafka_consumer_config, self.topics)
 
     @cherrypy.tools.json_out()
     def list_appis(self):

@@ -40,6 +40,7 @@ async def send_metrics():
     async with websockets.serve(receive_connection, "0.0.0.0", os.getenv("OSS_WS_PORT")):
         while True:
             try:
+                metrics = {}
                 if not metrics_queue.empty():
                     metrics = metrics_queue.get_nowait()
                     for websocket in ws:

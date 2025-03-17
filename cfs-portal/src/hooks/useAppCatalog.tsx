@@ -59,7 +59,6 @@ export const useAppCatalog = () => {
     };
 
     const handleNewAppPkg = async (formData: FormData) => {
-        console.log('handleNewAppPkg');
         try {
             await newAppPkg(formData);
             toast.success('New app created successfully');

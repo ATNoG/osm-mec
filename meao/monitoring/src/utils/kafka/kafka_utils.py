@@ -3,9 +3,6 @@ import os
 import uuid
 
 from kafka import KafkaConsumer, KafkaProducer
-from cherrypy import HTTPError
-
-from .callbacks.error_handler import responses
 
 class KafkaUtils:
     @staticmethod
@@ -38,21 +35,3 @@ class KafkaUtils:
         for message in consumer:
             response = message.value
             callback(response)
-
-
-    @staticmethod
-    def wait_for_response(msg_id=None):
-        if msg_id and msg_id not in responses:
-            responses[msg_id] = None
-
-            # poll until response is received
-            while responses[msg_id] is None:
-                pass
-
-            response = responses.pop(msg_id)
-
-            if response.get("error"):
-                raise HTTPError(response["status"], response["error"])
-            return response
-        else:
-            raise HTTPError(400, "msg_id not found")

@@ -61,10 +61,28 @@ export type AppData = {
 export type InstanceData = {
   id: string;
   name: string;
+  description: string;
+  details: string;
   'operational-status': string;
   'config-status': string;
-  details: string;
   'created-at': Date;
+}
+
+export type RowData = {
+  id: string,
+  expand: boolean,
+  name: string,
+  description: string | null,
+  details: string | null,
+  'current-meh': string | null,
+  'cpu-load': number | null,
+  'mem-load': number | null,
+  latency: number | null,
+  'created-at': Date | null,
+  'operational-status': OperationalStatus | null,
+  'config-status': ConfigStatus | null,
+  warnings: string | null,
+  actions: boolean,
 }
 
 export type VimData = {
@@ -130,9 +148,13 @@ export type SidebarProps = {
 
 export type Metrics = {
   [appiID: string]: {
-    memLoad: number,
-    cpuLoad: number
-    node: string,
-    lat: number,
+    [containerID: string]: {
+      mem_load: number | null,
+      cpu_load: number | null,
+      node: string | null,
+      latency: number | null,
+      kdu_id: string | null,
+      warning: string | null
+    }
   }
 }

@@ -1,0 +1,64 @@
+{{ if .Values.meao.enabled -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: {{ .Values.meao.name }}
+  name: {{ .Values.meao.name }}
+spec:
+  replicas: {{ .Values.meao.deployment.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.meao.name }}
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.meao.name }}
+    spec:
+      containers:
+        - name: {{ .Values.meao.name }}
+          image: {{ .Values.meao.deployment.image }}
+          imagePullPolicy: {{ .Values.meao.deployment.imagePullPolicy }}
+          env:
+          - name: KAFKA_PRODUCER_CONFIG
+            value: '{{ .Values.kafka.KAFKA_PRODUCER_CONFIG | toJson }}'
+          - name: KAFKA_CONSUMER_CONFIG
+            value: '{{ .Values.kafka.KAFKA_CONSUMER_CONFIG | merge (dict "group_id" .Values.meao.deployment.env.KAFKA_GROUP_ID) | toJson }}'
+          - name: MONGO_PASSWORD
+            value: '{{ .Values.mongo.password }}'
+          - name: MONGO_USER
+            value: '{{ .Values.mongo.username }}'
+          - name: OSM_HOSTNAME
+            value: '{{ .Values.osm.host }}'
+        {{ if .Values.meao.monitoring.enabled -}}
+        - name: {{ .Values.meao.monitoring.name }}
+          image: {{ .Values.meao.monitoring.deployment.image }}
+          imagePullPolicy: {{ .Values.meao.monitoring.deployment.imagePullPolicy }}
+          ports:
+            {{ .Values.meao.monitoring.deployment.ports | toYaml | nindent 12 }}
+          env:
+          - name: OSM_HOSTNAME
+            value: '{{ .Values.osm.host }}'
+          - name: KAFKA_PRODUCER_CONFIG
+            value: '{{ .Values.kafka.KAFKA_PRODUCER_CONFIG | toJson }}'
+          - name: KAFKA_CONSUMER_CONFIG
+            value: '{{ .Values.kafka.KAFKA_CONSUMER_CONFIG | merge (dict "group_id" .Values.meao.monitoring.deployment.env.KAFKA_GROUP_ID) | toJson }}'
+          - name: KUBECTL_COMMAND
+            value: "{{ .Values.meao.monitoring.deployment.env.KUBECTL_COMMAND }}"
+          - name: KUBECTL_CONFIG_PATH
+            value: "{{ .Values.meao.monitoring.deployment.env.KUBECTL_CONFIG_PATH }}"
+          - name: RAW_METRICS_KAFKA_TOPIC
+            value: "{{ .Values.meao.monitoring.deployment.env.RAW_METRICS_KAFKA_TOPIC }}"
+          - name: MEH_METRICS_KAFKA_TOPIC
+            value: "{{ .Values.meao.monitoring.deployment.env.MEH_METRICS_KAFKA_TOPIC }}"
+          - name: UE_LATENCY_KAFKA_TOPIC
+            value: "{{ .Values.meao.monitoring.deployment.env.UE_LATENCY_KAFKA_TOPIC }}"
+          - name: SEND_CONTAINER_INFO_FREQ
+            value: "{{ .Values.meao.monitoring.deployment.env.SEND_CONTAINER_INFO_FREQ }}"
+          - name: PYTHONUNBUFFERED
+            value: "1"
+        {{- end }}
+      restartPolicy: {{ .Values.meao.deployment.restartPolicy }}
+{{- end }}

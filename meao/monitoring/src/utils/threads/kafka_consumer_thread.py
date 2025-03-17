@@ -1,17 +1,14 @@
 import threading
 import time
+import json
 import os
 
-from cherrypy.process import plugins
+from src.utils.kafka.kafka_utils import KafkaUtils
 
-from ..kafka import KafkaUtils
-
-
-class KafkaConsumerThread(plugins.SimplePlugin):
+class KafkaConsumerThread:
     """Background thread that consumes messages from Kafka"""
 
-    def __init__(self, bus, consumer_conf, topic, callback):
-        super().__init__(bus)
+    def __init__(self, consumer_conf, topic, callback):
         self.consumer_conf = consumer_conf
         self.topic = topic
         self.callback = callback
@@ -25,6 +22,7 @@ class KafkaConsumerThread(plugins.SimplePlugin):
         )
         self.t.daemon = True
         self.t.start()
+
 
 def consume_messages(config, topic, callback):
     """Background worker thread"""

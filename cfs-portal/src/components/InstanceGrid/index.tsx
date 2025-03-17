@@ -1,23 +1,21 @@
 import { useEffect, useState } from "react";
-
 import Box from "@mui/material/Box";
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
+import { DataGrid, GridColDef, GridRowParams, GridRenderCellParams } from '@mui/x-data-grid';
 import Typography from "@mui/material/Typography";
-import Skeleton from "@mui/material/Skeleton";
-import DropdownButton from "../../components/DropdownButton";
-import DetailsDialog from "../Dialog/DetailsDialog";
-import ConfirmationDialog from "../Dialog/ConfirmationDialog";
-import { IconButton, Tooltip, LinearProgress } from "@mui/material";
+import { IconButton, Tooltip, LinearProgress, Skeleton } from "@mui/material";
 import { getAppI, terminateAppI } from "../../api/api";
-import { DropdownOption, InstanceData, OperationalStatus, ConfigStatus, ActionType, Item, InstanceGridProps, Metrics } from "../../types/Component";
-
+import { DropdownOption, InstanceData, OperationalStatus, ConfigStatus, ActionType, Item, InstanceGridProps, Metrics, RowData } from "../../types/Component";
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import AccessTimeFilledIcon from '@mui/icons-material/AccessTimeFilled';
 import StopCircleIcon from '@mui/icons-material/StopCircle';
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
-
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import toast from "../../utils/toast";
+import DetailsDialog from "../Dialog/DetailsDialog";
+import ConfirmationDialog from "../Dialog/ConfirmationDialog";
+import DropdownButton from "../../components/DropdownButton";
 
 const renderOperationalStatus = (status: OperationalStatus) => {
     switch (status) {
@@ -55,67 +53,98 @@ const terminateInstance = async (id: string) => {
 }
 
 const InstanceGrid = ({ minimalConfig = false, instanceCount }: InstanceGridProps) => {
+    // Data rows variables
     const [instanceData, setInstanceData] = useState<InstanceData[]>([]);
+    const [expandedRows, setExpandedRows] = useState<{ [key: string]: boolean }>({});
+    const [metrics, setMetrics] = useState<Metrics | null>(null);
+    const [rowData, setRowData] = useState<RowData[]>([]);
+
+    // Dialog variables
     const [loading, setLoading] = useState(true);
     const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
     const [detailsData, setDetailsData] = useState('');
     const [confirmationDialogOpen, setConfirmationDialogOpen] = useState(false);
     const [id, setId] = useState('');
     const [socket, setSocket] = useState<WebSocket | null>(null);
-    const [metrics, setMetrics] = useState<Metrics | null>(null);
 
-    useEffect(() => {
-        getInstanceData();
-        const interval = setInterval(() => {
-            getInstanceData();
+    // Table Pagination
+    const [page, setPage] = useState(0);
+    const [pageSize, setPageSize] = useState(0);
+    const [rowCount, setRowCount] = useState(0);
+
+    // Get the Rows to show in the DataGrid
+    const getInstanceData = async () => {
+        try {
+            const { data } = await getAppI();
+            const formattedData = data.map((d: any) => ({
+                ...d,
+                'created-at': new Date(d['created-at'] * 1000)
+            }));
+            setInstanceData(formattedData);
+            if (instanceCount)
+                instanceCount(data.length);
+        } catch (error) {
+            toast.error('Error fetching instance data');
+            setInstanceData([]);
+            if (instanceCount)
+                instanceCount(0);
+        } finally {
+            setLoading(false);
         }
-            , 5000);
+    };
+
+    // Get Instance Data each 5 seconds
+    useEffect(() => {
+        const fetchData = async () => {
+            getInstanceData();
+        };
+
+        fetchData();
+        const interval = setInterval(fetchData, 5000);
         return () => clearInterval(interval);
     }, []);
 
+    // Create WebSocket connection
     useEffect(() => {
-        const ws = new WebSocket('ws://'+ (process.env.REACT_APP_OSS_HOST || 'localhost') + ':' + (process.env.REACT_APP_WS_SOCKET_PORT || '8001'));
+        const ws = new WebSocket(`ws://${process.env.REACT_APP_OSS_HOST || 'localhost'}:${process.env.REACT_APP_WS_SOCKET_PORT || '8001'}`);
         setSocket(ws);
+        ws.onclose = () => {
+            setTimeout(() => {
+                setSocket(new WebSocket(ws.url)); // Reconnect after delay
+            }, 3000);
+        };
     }, []);
 
+    // Listen for WebSocket messages and process the message
     useEffect(() => {
         if (socket) {
             socket.onopen = () => {
                 console.log('Connected to WebSocket');
             };
             socket.onmessage = (event) => {
-                const data = JSON.parse(event.data);
+                const data: Metrics = event.data ? JSON.parse(event.data) : {};
                 setMetrics((prevMetrics) => {
-                    console.log(prevMetrics)
-                    if(data.appi_id !== undefined){
-                        if(!prevMetrics){
-                            prevMetrics = {}
+                    if (!prevMetrics) {
+                        prevMetrics = {}
+                    }
+
+                    for (const appi_id in data) {
+                        if (!(appi_id in prevMetrics)) {
+                            prevMetrics[appi_id] = {}
                         }
-                        if (!(data.appi_id in prevMetrics)){
-                            prevMetrics[data.appi_id] = {}
+
+                        for (const container_id in data[appi_id]) {
+                            prevMetrics[appi_id][container_id] = {
+                                mem_load: data[appi_id][container_id].mem_load != null && data[appi_id][container_id].mem_load >= 0 ? data[appi_id][container_id].mem_load.toFixed(2) : null,
+                                cpu_load: data[appi_id][container_id].cpu_load != null && data[appi_id][container_id].cpu_load >= 0  ? data[appi_id][container_id].cpu_load.toFixed(2) : null,
+                                latency: data[appi_id][container_id].latency != null && data[appi_id][container_id].latency >= 0  ? data[appi_id][container_id].latency.toFixed(2) : null,
+                                kdu_id: data[appi_id][container_id].kdu_id,
+                                warning: data[appi_id][container_id].warning,
+                                node: data[appi_id][container_id].node
+                            }
                         }
-                        if (data.mem_load !== undefined && data.cpu_load !== undefined && data.warning !== undefined) {
-                            return {
-                                ...prevMetrics,
-                                [data.appi_id]: {
-                                    ...prevMetrics[data.appi_id],
-                                    memLoad: data.mem_load,
-                                    cpuLoad: data.cpu_load,
-                                    warning: data.warning,
-                                }
-                            };
-                        }
-                        else {
-                            return {
-                                ...prevMetrics,
-                                [data.appi_id]: {
-                                    ...prevMetrics[data.appi_id],
-                                    node: data.node,
-                                    lat: data[data.node]
-                                }
-                            };
-                        };
-                    };
+                    }
+                    return prevMetrics;
                 });
             };
             socket.onclose = () => {
@@ -124,6 +153,7 @@ const InstanceGrid = ({ minimalConfig = false, instanceCount }: InstanceGridProp
         }
     }, [socket]);
 
+    // Get the color of the load based on the value
     const getLoadColor = (load: number) => {
         if (load < 40) {
             return 'success';
@@ -134,43 +164,151 @@ const InstanceGrid = ({ minimalConfig = false, instanceCount }: InstanceGridProp
         }
     }
 
+    // Update the rows based on the instance data and metrics
+    useEffect(() => {
+        let rows: any = [];
+
+        // Order data by created-at and apply pagination
+        setRowCount(instanceData.length);
+        const ordered_paginated_data = [...instanceData].sort((a, b) => {
+            return new Date(b['created-at']).getTime() - new Date(a['created-at']).getTime();
+        }).slice(page * pageSize, (page + 1) * pageSize);
+
+        for (const key in ordered_paginated_data) {
+            // Add a row as we want the apps to be displayed
+            const row_data: RowData = {
+                id: ordered_paginated_data[key].id,
+                expand: true,
+                name: ordered_paginated_data[key].name,
+                description: ordered_paginated_data[key].description,
+                details: ordered_paginated_data[key].details,
+                'current-meh': null,
+                'cpu-load': null,
+                'mem-load': null,
+                latency: null,
+                'created-at': ordered_paginated_data[key]['created-at'],
+                'operational-status': ordered_paginated_data[key]['operational-status'],
+                'config-status': ordered_paginated_data[key]['config-status'],
+                warnings: null,
+                actions: true
+            };
+            rows.push(row_data);
+
+            if (expandedRows[ordered_paginated_data[key].id]) {
+                // Add a row for each container as we want the containers to be displayed
+                if ( metrics && ordered_paginated_data[key].id in metrics){
+                    for (const container in metrics[ordered_paginated_data[key].id]) {
+                        const row_data: RowData = {
+                            id: container,
+                            expand: false,
+                            name: container,
+                            description: "kdu: " + metrics[ordered_paginated_data[key].id][container]['kdu_id'],
+                            details: '',
+                            'current-meh': metrics[ordered_paginated_data[key].id][container]['node'],
+                            'cpu-load': metrics[ordered_paginated_data[key].id][container]['cpu_load'],
+                            'mem-load': metrics[ordered_paginated_data[key].id][container]['mem_load'],
+                            latency: metrics[ordered_paginated_data[key].id][container]['latency'],
+                            'created-at': null,
+                            'operational-status': null,
+                            'config-status': null,
+                            warnings: metrics[ordered_paginated_data[key].id][container]['warning'],
+                            actions: false
+                        }
+                        rows.push(row_data);
+                    }
+                }
+            }
+        }
+        setRowData(rows);
+    }, [instanceData, expandedRows, metrics, page, pageSize]);
+
+    // Change the expanded state of a row to the opposite
+    const handleExpandClick = (id: string) => {
+        setExpandedRows((prev) => {
+            return {
+                ...prev,
+                [id]: !prev[id]
+            }
+            
+        });
+    };
+
+    // Columns for the DataGrid
     const columns: GridColDef[] = [
-        { field: 'name', headerName: 'Name', width: 200 },
-        ...minimalConfig ? [] : [{ field: 'description', headerName: 'Description', flex: 1 }],
-        ...minimalConfig ? [] : [{
-            field: 'details',
-            headerName: 'Details',
-            flex: 1,
-            renderCell: (params: any) => (
-                <Box display='flex' justifyContent='space-between' alignItems='center' width='100%'>
-                    <Typography
-                        variant='body2'
-                        overflow='hidden'
-                        textOverflow='ellipsis'
-                        whiteSpace='nowrap'
-                        flex='1'
-                    >
-                        {params.row.details}
-                    </Typography>
-                    <IconButton onClick={() => {
-                        setDetailsDialogOpen(true);
-                        setDetailsData(params.row.details);
-                    }}>
-                        <MoreHorizIcon />
-                    </IconButton>
-                </Box >
-            )
-        }],
         {
-            field: 'current_meh',
+            field: 'expand',
+            headerName: '',
+            width: 50,
+            renderCell: (params: GridRenderCellParams) => (
+                <>
+                    {
+                        (() => {
+                            if (!params.row.expand) {
+                                return null;
+                            }
+                            return (
+                                <IconButton
+                                    size="small"
+                                    onClick={() => handleExpandClick(params.row.id)}
+                                >
+                                    {expandedRows[params.row.id] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+
+                                </IconButton>
+                            )
+                            
+                        })()
+                    }
+                </>
+            ),
+        },
+        {
+            field: 'name',
+            headerName: 'Name',
+            width: 200
+        },
+        ...minimalConfig ? [] : [
+            {
+                field: 'description',
+                headerName: 'Description',
+                flex: 1
+            }
+        ],
+        ...minimalConfig ? [] : [
+            {
+                field: 'details',
+                headerName: 'Details',
+                flex: 1,
+                renderCell: (params: any) => (
+                    <Box display='flex' justifyContent='space-between' alignItems='center' width='100%'>
+                        <Typography
+                            variant='body2'
+                            overflow='hidden'
+                            textOverflow='ellipsis'
+                            whiteSpace='nowrap'
+                            flex='1'
+                        >
+                            {params.row.details}
+                        </Typography>
+                        <IconButton onClick={() => {
+                            setDetailsDialogOpen(true);
+                            setDetailsData(params.row.details);
+                        }}>
+                            <MoreHorizIcon />
+                        </IconButton>
+                    </Box >
+                )
+            }
+        ],
+        {
+            field: 'current-meh',
             headerName: 'Current MEC Host',
             width: 200,
             type: 'string',
             renderCell: (params: any) => {
-                const node = metrics && metrics[params.row.id as string]?.node;
+                const node = params.row['current-meh'];
                 return (
                     <Box sx={{ position: 'relative', width: '100%' }}>
-                        {node !== undefined ? (
+                        {node !== undefined && node !== null ? (
                             <>
                                 <Typography
                                     variant="body2"
@@ -187,21 +325,23 @@ const InstanceGrid = ({ minimalConfig = false, instanceCount }: InstanceGridProp
             }
         },
         {
-            field: 'lat',
-            headerName: 'Latency (ms)',
-            width: 100,
+            field: 'cpu-load',
+            headerName: 'CPU (%)',
+            width: 70,
             type: 'number',
+            headerAlign: 'center',
+            align: 'center',
             renderCell: (params: any) => {
-                const lat = metrics && metrics[params.row.id as string]?.lat;
+                const cpuLoad: string = params.row['cpu-load'];
                 return (
                     <Box sx={{ position: 'relative', width: '100%' }}>
-                        {lat !== undefined ? (
+                        {cpuLoad !== undefined && cpuLoad !== null ? (
                             <>
                                 <LinearProgress
                                     variant="determinate"
-                                    value={lat}
+                                    value={Number(cpuLoad)}
                                     sx={{ width: '100%', height: '30px' }}
-                                    color={getLoadColor(lat)}
+                                    color={getLoadColor(Number(cpuLoad))}
                                 />
                                 <Typography
                                     variant="body2"
@@ -216,7 +356,7 @@ const InstanceGrid = ({ minimalConfig = false, instanceCount }: InstanceGridProp
                                         lineHeight: '30px'
                                     }}
                                 >
-                                    {lat}
+                                    {cpuLoad}
                                 </Typography>
                             </>) : (
                             <Typography variant="body2" textAlign='center'>
@@ -232,18 +372,19 @@ const InstanceGrid = ({ minimalConfig = false, instanceCount }: InstanceGridProp
             headerName: 'Mem (%)',
             width: 70,
             type: 'number',
+            headerAlign: 'center',
+            align: 'center',
             renderCell: (params: any) => {
-                const memLoad = metrics && metrics[params.row.id as string]?.memLoad;
-
+                const memLoad: string = params.row['mem-load'];
                 return (
                     <Box sx={{ position: 'relative', width: '100%' }}>
-                        {memLoad !== undefined ? (
+                        {memLoad !== undefined && memLoad !== null ? (
                             <>
                                 <LinearProgress
                                     variant="determinate"
-                                    value={memLoad}
+                                    value={Number(memLoad)}
                                     sx={{ width: '100%', height: '30px' }}
-                                    color={getLoadColor(memLoad)}
+                                    color={getLoadColor(Number(memLoad))}
                                 />
                                 <Typography
                                     variant="body2"
@@ -270,22 +411,23 @@ const InstanceGrid = ({ minimalConfig = false, instanceCount }: InstanceGridProp
             }
         },
         {
-            field: 'cpu-load',
-            headerName: 'CPU (%)',
-            width: 70,
+            field: 'latency',
+            headerName: 'Latency (ms)',
+            width: 100,
             type: 'number',
+            headerAlign: 'center',
+            align: 'center',
             renderCell: (params: any) => {
-                const cpuLoad = metrics && metrics[params.row.id as string]?.cpuLoad;
-
+                const latency: string = params.row.latency;
                 return (
                     <Box sx={{ position: 'relative', width: '100%' }}>
-                        {cpuLoad !== undefined ? (
+                        {latency !== undefined && latency !== null ? (
                             <>
                                 <LinearProgress
                                     variant="determinate"
-                                    value={cpuLoad}
+                                    value={Number(latency)}
                                     sx={{ width: '100%', height: '30px' }}
-                                    color={getLoadColor(cpuLoad)}
+                                    color={getLoadColor(Number(latency))}
                                 />
                                 <Typography
                                     variant="body2"
@@ -300,7 +442,7 @@ const InstanceGrid = ({ minimalConfig = false, instanceCount }: InstanceGridProp
                                         lineHeight: '30px'
                                     }}
                                 >
-                                    {cpuLoad}
+                                    {latency}
                                 </Typography>
                             </>) : (
                             <Typography variant="body2" textAlign='center'>
@@ -311,19 +453,29 @@ const InstanceGrid = ({ minimalConfig = false, instanceCount }: InstanceGridProp
                 )
             }
         },
-        ...minimalConfig ? [] : [{
-            field: 'created-at',
-            headerName: 'Created At',
-            width: 90,
-            type: 'date',
-            renderCell: (params: any) => (
-                <Tooltip title={params.row['created-at'].toLocaleString()}>
-                    <Typography variant="body2">
-                        {params.row['created-at'].toLocaleDateString()}
-                    </Typography>
-                </Tooltip>
-            )
-        }],
+        ...minimalConfig ? [] : [
+            {
+                field: 'created-at',
+                headerName: 'Created At',
+                width: 90,
+                type: 'date',
+                headerAlign: 'center',
+                align: 'center',
+                renderCell: (params: any) => (
+                    params.row['created-at'] !== undefined && params.row['created-at'] !== null ? (
+                        <Tooltip title={params.row['created-at'].toLocaleString()}>
+                            <Typography variant="body2">
+                                {params.row['created-at'].toLocaleDateString()}
+                            </Typography>
+                        </Tooltip>
+                    ) : (
+                        <Typography variant="body2" textAlign='center'>
+                            -
+                        </Typography>
+                    )
+                )
+            }
+        ],
         {
             field: 'operational-status',
             headerName: 'Operational Status',
@@ -331,117 +483,175 @@ const InstanceGrid = ({ minimalConfig = false, instanceCount }: InstanceGridProp
             headerAlign: 'center',
             flex: minimalConfig ? 1 : undefined,
             align: 'center',
-            renderCell: (params) => renderOperationalStatus(params.row['operational-status'] as OperationalStatus)
+            renderCell: (params) => (
+                params.row['operational-status'] !== undefined && params.row['operational-status'] !== null ? (
+                    renderOperationalStatus(params.row['operational-status'] as OperationalStatus)
+                ) : (
+                    <Typography variant="body2" textAlign='center'>
+                        -
+                    </Typography>
+                )
+            )
         },
-        ...minimalConfig ? [] : [{
-            field: 'config-status',
-            headerName: 'Config Status',
-            width: 100,
-            headerAlign: 'center',
-            renderCell: (params: any) => renderConfigStatus(params.row['config-status'] as ConfigStatus)
-        }],
-        ...minimalConfig ? [] : [{
-            field: 'warnings',
-            headerName: '',
-            width: 100,
-            renderCell: (params: any) => {
-                const warning = metrics && metrics[params.row.id as string]?.warning;
-        
-                if (warning !== undefined && warning !== null) {
-                    return (
-                        <Tooltip title={warning}>
-                            <Box display="flex" alignItems="center" justifyContent="center">
-                                {renderOperationalStatus(OperationalStatus.FAILED)}
-                            </Box>
-                        </Tooltip>
-                    );
-                }
-        
+        ...minimalConfig ? [] : [
+            {
+                field: 'config-status',
+                headerName: 'Config Status',
+                width: 100,
+                headerAlign: 'center',
+                align: 'center',
+                renderCell: (params: any) => (
+                    params.row['config-status'] !== undefined && params.row['config-status'] !== null ? (
+                        renderConfigStatus(params.row['config-status'] as ConfigStatus)
+                    ) : (
+                        <Typography variant="body2" textAlign='center'>
+                            -
+                        </Typography>
+                    )
+                )
             }
-        }],
-        ...minimalConfig ? [] : [{
-            field: 'actions',
-            headerName: '',
-            width: 150,
-            sortable: false,
-            renderCell: (params: any) => (
-                <DropdownButton
-                    title='Actions'
-                    options={
-                        [
-                            {
-                                label: 'Terminate',
-                                handleClick: () => {
-                                    setConfirmationDialogOpen(true);
-                                    setId(params.row.id as string);
-                                }
-                            },
-                        ] as DropdownOption[]
-                    }
-                />
-            ),
-        }],
-    ];
+        ],
+        ...minimalConfig ? [] : [
+            {
+                field: 'warnings',
+                headerName: 'Warnings',
+                width: 100,
+                headerAlign: 'center',
+                align: 'center',
+                renderCell: (params: any) => {
+                    const warning = params.row.warnings;
 
-    const getInstanceData = async () => {
-        try {
-            const { data } = await getAppI();
-            const formattedData = data.map((d: any) => ({
-                ...d,
-                'created-at': new Date(d['created-at'] * 1000)
-            }));
-            setInstanceData(formattedData);
-            if (instanceCount)
-                instanceCount(data.length);
-        } catch (error) {
-            setInstanceData([]);
-            toast.error('Error fetching instance data');
-            if (instanceCount)
-                instanceCount(0);
-        } finally {
-            setLoading(false);
-        }
-    };
+                    if (warning !== undefined && warning !== null) {
+                        return (
+                            <Tooltip title={warning}>
+                                <Box display="flex" alignItems="center" justifyContent="center">
+                                    {renderOperationalStatus(OperationalStatus.FAILED)}
+                                </Box>
+                            </Tooltip>
+                        );
+                    }
+                    else{
+                        return (
+                            <Typography variant="body2" textAlign='center'>
+                                -
+                            </Typography>
+                        );
+                    }
+
+                }
+            }
+        ],
+        ...minimalConfig ? [] : [
+            {
+                field: 'actions',
+                headerName: '',
+                width: 150,
+                sortable: false,
+                headerAlign: 'center',
+                align: 'center',
+                renderCell: (params: any) => (
+                    (
+                        params.row.actions !== undefined && params.row.actions !== null ?
+                        (
+                            <DropdownButton
+                                title='Actions'
+                                options={
+                                    [
+                                        {
+                                            label: 'Terminate',
+                                            handleClick: () => {
+                                                setConfirmationDialogOpen(true);
+                                                setId(params.row.id as string);
+                                            }
+                                        },
+                                    ] as DropdownOption[]
+                                }
+                            />
+                        ) : null
+                    )
+                )
+            }
+        ],
+    ];
 
     return (
         <>
-            <DataGrid
-                hideFooter={minimalConfig}
-                getRowId={(row) => row.id}
-                rows={instanceData}
-                columns={columns}
-                initialState={{
-                    pagination: {
-                        paginationModel: {
-                            pageSize: 10,
-                        },
-                    },
-                }}
-                pageSizeOptions={[5, 10, 20, 50, 100]}
-                disableRowSelectionOnClick
-                sx={{
-                    "&.MuiDataGrid-root .MuiDataGrid-cell:focus-within": {
-                        outline: "none !important",
-                    },
-                    display: 'grid'
-                }}
-            />
-            <DetailsDialog
-                open={detailsDialogOpen}
-                onClose={() => setDetailsDialogOpen(false)}
-                title='Instance Details'
-                data={detailsData}
-            />
-            <ConfirmationDialog
-                open={confirmationDialogOpen}
-                onClose={() => setConfirmationDialogOpen(false)}
-                onConfirm={() => {
-                    terminateInstance(id);
-                    setConfirmationDialogOpen(false);
-                }}
-                action={ActionType.TERMINATE}
-                item={Item.INSTANCE}
-            />
+            {loading ? (
+                // Show a loading skeleton while data is being fetched
+                <Box sx={{ width: '100%' }}>
+                    <Skeleton variant="rectangular" width="100%" height={200} />
+                    <Skeleton variant="text" width="100%" />
+                    <Skeleton variant="text" width="100%" />
+                    <Skeleton variant="text" width="100%" />
+                </Box>
+            ) : (
+                <>
+                    <DataGrid
+                        initialState={{
+                            pagination: {
+                              paginationModel: { pageSize: 10, page: 0 },
+                            },
+                          }}
+                        hideFooter={minimalConfig}
+                        getRowId={(row) => row.id}
+                        rows={rowData} // Correct filtered row list
+                        columns={columns.map((col) => ({
+                            ...col,
+                            sortable: false,  // Disable sorting for all columns
+                        }))}
+                        pagination
+                        paginationMode="server" // Important for manual pagination
+                        rowCount={rowCount} // Only count expanded rows
+                        pageSizeOptions={[5, 10, 30, 100]}
+                        onStateChange={(state) => {
+                            if (state.pagination.paginationModel.pageSize >= 0) {
+                                setPageSize(state.pagination.paginationModel.pageSize);
+                            }
+                            if (state.pagination.paginationModel.page >= 0) {
+                                setPage(state.pagination.paginationModel.page);
+                            }
+                        }}
+                        disableRowSelectionOnClick
+                        sx={{
+                            "&.MuiDataGrid-root .MuiDataGrid-cell:focus-within": {
+                                outline: "none !important",
+                            },
+                            "& .MuiDataGrid-columnHeaders": {
+                                backgroundColor: "#f5f5f5",
+                            },
+                            "& .MuiDataGrid-footerContainer": {
+                                backgroundColor: "#f5f5f5",
+                            },
+                            "& .MuiDataGrid-row": {
+                                backgroundColor: "#f5f5f5",
+                            },
+                            display: 'grid',
+                            "& .MuiDataGrid-row.expandedRow": {
+                                backgroundColor: "#f0f0f0",
+                            },
+                        }}
+                        getRowClassName={(params) =>
+                            params.row.expand ? "expandedRow" : ""
+                        }
+                    />
+                    <DetailsDialog
+                        open={detailsDialogOpen}
+                        onClose={() => setDetailsDialogOpen(false)}
+                        title='Instance Details'
+                        data={detailsData}
+                    />
+                    <ConfirmationDialog
+                        open={confirmationDialogOpen}
+                        onClose={() => setConfirmationDialogOpen(false)}
+                        onConfirm={() => {
+                            terminateInstance(id);
+                            setConfirmationDialogOpen(false);
+                        }}
+                        action={ActionType.TERMINATE}
+                        item={Item.INSTANCE}
+                    />
+                </>
+            )}
         </>
     );
 };

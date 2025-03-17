@@ -2,7 +2,7 @@ import io
 import tarfile
 
 import yaml
-from models.mec_app import mec_app_descriptor
+from src.models.mec_app import mec_app_descriptor
 from pyangbind.lib.serialise import pybindJSONDecoder
 
 

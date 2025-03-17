@@ -3,9 +3,6 @@ import os
 import uuid
 
 from kafka import KafkaConsumer, KafkaProducer
-from cherrypy import HTTPError
-
-from .callbacks.error_handler import responses
 
 class KafkaUtils:
     @staticmethod
@@ -28,31 +25,15 @@ class KafkaUtils:
     @staticmethod
     def send_message(producer, topic, message):
         #  inject a unique message id
-        msg_id = str(uuid.uuid4())
-        message["msg_id"] = msg_id
+        if not "msg_id" in message:
+            message["msg_id"] = str(uuid.uuid4())
         producer.send(topic, message)
-        return msg_id
 
     @staticmethod
-    def consume_messages(consumer, callback):
+    def consume_messages(consumer, callbacks: dict):
         for message in consumer:
-            response = message.value
-            callback(response)
-
-
-    @staticmethod
-    def wait_for_response(msg_id=None):
-        if msg_id and msg_id not in responses:
-            responses[msg_id] = None
-
-            # poll until response is received
-            while responses[msg_id] is None:
-                pass
-
-            response = responses.pop(msg_id)
-
-            if response.get("error"):
-                raise HTTPError(response["status"], response["error"])
-            return response
-        else:
-            raise HTTPError(400, "msg_id not found")
+            print("Received Message: ", message)
+            if message.topic in callbacks:
+                callback_function = callbacks[message.topic]
+                response = callback_function(message.value)
+                yield response

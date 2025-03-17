@@ -1,6 +1,6 @@
-from utils.db import DB
-from utils.exceptions import handle_exceptions
-from utils.osm import get_osm_client
+from src.utils.db import DB
+from src.utils.exceptions import handle_exceptions
+from src.utils.osm import get_osm_client
 
 
 @handle_exceptions

@@ -2,28 +2,24 @@ import threading
 import time
 import json
 
-from cherrypy.process import plugins
+from src.utils.db import DB
+from src.utils.kafka.kafka_utils import KafkaUtils
 
-from utils.db import DB
-from utils.kafka import KafkaUtils, producer
-
-containers = {}
-
-class SendMECAppsThread(plugins.SimplePlugin):
+class SendMECAppsThread:
     """Background thread that sends MEC Apps information"""
 
-    def __init__(self, bus):
-        super().__init__(bus)
+    def __init__(self, producer):
+        self.producer = producer
         self.t = None
 
     def start(self):
         """Plugin entrypoint"""
-        self.t = threading.Thread(target=send_mec_apps)
+        self.t = threading.Thread(target=send_mec_apps, args=(self.producer,))
         self.t.daemon = True
         self.t.start()
 
 
-def send_mec_apps():
+def send_mec_apps(producer):
     while True:
         try:
             mec_apps = DB._list("appis")
@@ -33,7 +29,7 @@ def send_mec_apps():
 
             KafkaUtils.send_message(
                 producer,
-                "meao-oss",
+                "mec-apps",
                 {"mec_apps": mec_apps},
             )
             

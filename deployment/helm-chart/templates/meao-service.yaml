@@ -1,0 +1,14 @@
+{{ if and (eq .Values.meao.enabled true) (eq .Values.meao.monitoring.enabled true) -}}
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: {{ .Values.meao.name }}
+  name: {{ .Values.meao.name }}
+spec:
+  type: {{ .Values.meao.service.type }}
+  ports:
+    {{ .Values.meao.service.ports | toYaml | nindent 4 }}
+  selector:
+    app: {{ .Values.meao.name }}
+{{- end }}

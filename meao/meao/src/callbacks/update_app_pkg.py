@@ -1,9 +1,9 @@
-from utils.appd_parser import AppdParser
-from utils.appd_validation import *
-from utils.db import DB
-from utils.exceptions import handle_exceptions
-from utils.file_management import *
-from utils.osm import get_osm_client
+from src.utils.appd_parser import AppdParser
+from src.utils.appd_validation import *
+from src.utils.db import DB
+from src.utils.exceptions import handle_exceptions
+from src.utils.file_management import *
+from src.utils.osm import get_osm_client
 
 
 @handle_exceptions

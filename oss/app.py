@@ -1,26 +1,23 @@
 import os
-
+import json
 import cherrypy
 import cherrypy_cors
 from app_routes import set_routes
 from utils.cherrypy_utils import jsonify_error
 from utils.kafka.callbacks.error_handler import callback as error_handler
 from utils.kafka.callbacks.get_metrics import callback as get_metrics
-from utils.kafka.callbacks.get_latency import callback as get_latency
-from utils.kafka.callbacks.get_container_info import callback as get_container_info
 from utils.threads import (KafkaConsumerThread,
-                           WebSocketServiceThread, SendMECAppsThread)
+                           WebSocketServiceThread)
 
 
 def main():
     cherrypy_cors.install()
 
-    KafkaConsumerThread(cherrypy.engine, "responses", error_handler).subscribe()
-    KafkaConsumerThread(cherrypy.engine, "k8s-cluster", get_metrics).subscribe()
-    KafkaConsumerThread(cherrypy.engine, "ue-lat", get_latency).subscribe()
-    KafkaConsumerThread(cherrypy.engine, "meao-oss", get_container_info).subscribe()
+    kafka_consumer_config = json.loads(os.environ.get("KAFKA_CONSUMER_CONFIG", '{"bootstrap_servers": "localhost:9092", "group_id": "monitoring", "auto_offset_reset": "latest"}'))
+
+    KafkaConsumerThread(cherrypy.engine, kafka_consumer_config, "responses", error_handler).subscribe()
+    KafkaConsumerThread(cherrypy.engine, kafka_consumer_config, "meh-metrics", get_metrics).subscribe()
     WebSocketServiceThread(cherrypy.engine).subscribe()
-    SendMECAppsThread(cherrypy.engine).subscribe()
 
     dispatcher = set_routes()
 

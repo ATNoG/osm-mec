@@ -20,14 +20,17 @@ jobs:
       matrix:
         include:
           - dir: cfs-portal
-            image: cfs-portal
             dockerfile: Dockerfile
-          - dir: meao
-            image: meao
+            image-name: cfs-portal
+          - dir: meao/meao
             dockerfile: Dockerfile
+            image-name: meao
+          - dir: meao/monitoring
+            dockerfile: Dockerfile
+            image-name: meao-monitoring
           - dir: oss
-            image: oss
             dockerfile: Dockerfile
+            image-name: oss
           
     # Sets the permissions granted to the `GITHUB_TOKEN` for the actions in this job.
     permissions:
@@ -48,7 +51,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
         with:
-          images: ${{ env.REGISTRY }}/${{ github.repository }}/${{ matrix.image }}
+          images: ${{ env.REGISTRY }}/${{ github.repository }}/${{ matrix.image-name }}
 
       - name: Build and push Docker
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc

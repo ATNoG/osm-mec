@@ -2,6 +2,45 @@ osm:
   # your osm host
   host: nbi.localhost.nip.io  # REPLACE
 
+meao:
+  name: meao
+  enabled: true
+  deployment:
+    replicas: 1
+    image: ghcr.io/atnog/osm-mec/meao:main
+    imagePullPolicy: Always
+    restartPolicy: Always
+    env:
+      KAFKA_GROUP_ID: "meao"
+
+  monitoring:
+    enabled: true
+    name: meao-monitoring
+    deployment:
+      image: ghcr.io/atnog/osm-mec/meao-monitoring:main
+      ports:
+        - containerPort: 8000
+          protocol: TCP
+      imagePullPolicy: Always
+      restartPolicy: Always
+      env:
+        KUBECTL_COMMAND: /usr/local/bin/kubectl
+        KUBECTL_CONFIG_PATH: kube_config
+        RAW_METRICS_KAFKA_TOPIC: raw-metrics  # Raw Metrics
+        MEH_METRICS_KAFKA_TOPIC: meh-metrics  # MEC Hosts Metrics
+        UE_LATENCY_KAFKA_TOPIC: ue-lat
+        SEND_CONTAINER_INFO_FREQ: "5"
+        KAFKA_GROUP_ID: "meao-monitoring"
+
+  service:
+    type: NodePort
+    ports:
+      - name: "8000"
+        port: 8000
+        targetPort: 8000
+        nodePort: 30800
+
+
 oss:
   enabled: true
   # host that will be shared by the cfs-portal to the client
@@ -10,6 +49,8 @@ oss:
     image: ghcr.io/atnog/osm-mec/oss:main
     imagePullPolicy: Always
     restartPolicy: Always
+    env:
+      KAFKA_GROUP_ID: "oss"
   service:
     type: LoadBalancer
     oss_port: 8080
@@ -47,14 +88,6 @@ cfsPortal:
     targetPort: 3000
     nodePort: 30000
 
-meao:
-  enabled: true
-  deployment:
-    replicas: 1
-    image: ghcr.io/atnog/osm-mec/meao:main
-    imagePullPolicy: Always
-    restartPolicy: Always
-
 mongo:
   enabled: true
   deployment:
@@ -63,8 +96,8 @@ mongo:
   service:
     port: 27017
     targetPort: 27017
-  password: pass
   username: root
+  password: pass
 
 mongoExpress:
   enabled: true
@@ -74,5 +107,5 @@ mongoExpress:
   service:
     port: 8081
     targetPort: 8081
-  password: pass
   username: root
+  password: pass

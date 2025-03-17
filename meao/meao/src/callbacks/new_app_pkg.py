@@ -1,11 +1,11 @@
 from osmclient.common.exceptions import ClientException
-from utils.appd_parser import AppdParser
-from utils.appd_validation import *
-from utils.capture_io import CaptureIO
-from utils.db import DB
-from utils.exceptions import handle_exceptions
-from utils.file_management import *
-from utils.osm import get_osm_client
+from src.utils.appd_parser import AppdParser
+from src.utils.appd_validation import *
+from src.utils.capture_io import CaptureIO
+from src.utils.db import DB
+from src.utils.exceptions import handle_exceptions
+from src.utils.file_management import *
+from src.utils.osm import get_osm_client
 from decimal import Decimal, ROUND_HALF_UP
 
 
@@ -15,6 +15,7 @@ def callback(message):
 
     if app_pkg_id:
         app_pkg = DB._get(id=app_pkg_id, collection="app_pkgs")
+
         appd_binary = app_pkg.get("appd")
         appd_data = get_descriptor_data(appd_binary)
         appd = validate_descriptor(appd_data)
@@ -56,6 +57,8 @@ def callback(message):
                     "migration_policy": migration_policy
                 },
             )
+        except Exception as e:
+            print("Exception occurred:", e)
         finally:
             delete_file(vnfd_file)
             delete_file(nsd_file)

@@ -1,4 +1,6 @@
+import logging
 import os
+
 from osmclient import client
 
 def get_osm_client():

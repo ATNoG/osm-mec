@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM python:3.9
+FROM python:3.10
 
 # set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -20,4 +20,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . /app
 
 # run the application
-CMD ["python", "app.py"]
+CMD ["python", "main.py"]
