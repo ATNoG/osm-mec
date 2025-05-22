@@ -140,7 +140,9 @@ module mec-app-descriptor {
       description "If present, it represents the application network policy of carrying the application traffic.";
     }
 
-    container migration-policy {
+    list migration-policy {
+      key "artifact";
+      config false;
       uses mp:migration-policy-descriptor;
       description "If present, it represents the application monitoring policy";
     }

@@ -2,9 +2,8 @@ from src.utils.db import DB
 from src.utils.exceptions import handle_exceptions
 from src.utils.osm import get_osm_client
 
-
 @handle_exceptions
-def callback(message):
+def callback(meao, message):
     app_pkg_id = message.get("app_pkg_id")
 
     if app_pkg_id:
@@ -19,4 +18,4 @@ def callback(message):
             get_osm_client().vnfd.delete(name=vnf_pkg_id)
             DB._update(id=app_pkg_id, collection="app_pkgs", data={"vnf_pkg_id": None})
 
-        return {"msg_id": message["msg_id"], "status": 204}
+        return {"status": 204}

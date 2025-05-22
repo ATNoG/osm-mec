@@ -1,4 +1,4 @@
-{{ if and (eq .Values.meao.enabled true) (eq .Values.meao.monitoring.enabled true) -}}
+{{ if .Values.meao.enabled -}}
 apiVersion: v1
 kind: Service
 metadata:

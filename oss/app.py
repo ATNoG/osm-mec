@@ -16,7 +16,7 @@ def main():
     kafka_consumer_config = json.loads(os.environ.get("KAFKA_CONSUMER_CONFIG", '{"bootstrap_servers": "localhost:9092", "group_id": "monitoring", "auto_offset_reset": "latest"}'))
 
     KafkaConsumerThread(cherrypy.engine, kafka_consumer_config, "responses", error_handler).subscribe()
-    KafkaConsumerThread(cherrypy.engine, kafka_consumer_config, "meh-metrics", get_metrics).subscribe()
+    # KafkaConsumerThread(cherrypy.engine, kafka_consumer_config, "meh-metrics", get_metrics).subscribe()   # TODO: Update for new metrics format
     WebSocketServiceThread(cherrypy.engine).subscribe()
 
     dispatcher = set_routes()

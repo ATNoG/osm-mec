@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 import yaml
 import requests
@@ -6,6 +7,8 @@ import warnings
 import time
 from osmclient import client
 from osmclient.common.exceptions import ClientException, OsmHttpException
+
+DOMAIN = "IT_AVEIRO"
 
 class NBIConnector:
     """
@@ -27,27 +30,9 @@ class NBIConnector:
 
     def __init__(self, osm_hostname, kubectl_command, kubectl_config_path) -> None:
         self.osm_hostname = osm_hostname
+        self.nbi_client = client.Client(host=self.osm_hostname, port=9999,sol005=True)
         self.kubectl_command = kubectl_command
         self.kubectl_config_path = kubectl_config_path
-        self.nbi_client = client.Client(host=self.osm_hostname, port=9999,sol005=True)
-        kubectl_config = None
-        while not kubectl_config:
-            kubectl_config = self.getKubeConfig()
-        with open(self.kubectl_config_path, 'w') as file:
-            yaml.dump(kubectl_config["credentials"], file)
-    
-    def getKubeConfig(self):
-        """
-        Interacts with OSM's NBI to get the kube config to be used by the kubectl command to interact with the cluster
-        """
-        kubectl_config = None
-        try:
-            kubectl_config = self.callNBI(self.nbi_client.k8scluster.list)[0]
-        except Exception as e:
-            print("ERROR: Could not get kube config: {}".format(e))
-            time.sleep(5)
-
-        return kubectl_config
     
     def get_pod_status(self, namespace):
         """
@@ -74,51 +59,6 @@ class NBIConnector:
         pod_status = {pod['metadata']['name']: pod['status']['phase'] for pod in pods}
         return pod_status
     
-    def getNodeSpecs(self):
-        """
-        Interacts with the Kubernetes API to get information relating to the cluster's nodes and the corresponding cadvisor pods
-        """
-        nodeSpecs = {}
-
-        command = (
-            "{} --kubeconfig={} get nodes -o=json".format(
-                self.kubectl_command,
-                self.kubectl_config_path,
-            )
-        )
-        try:
-            # execute the kubectl command and capture the output
-            node_info = json.loads(subprocess.check_output(command.split()))
-        except subprocess.CalledProcessError as e:
-            # handle any errors if the command fails
-            print("Error executing kubectl command:", e)
-            return nodeSpecs
-        
-        for node in node_info["items"]:
-            nodeSpecs[node["metadata"]["labels"]["kubernetes.io/hostname"]] = {
-                "num_cpu_cores": int(node["status"]["allocatable"]["cpu"]),
-                "memory_size": int(node["status"]["allocatable"]["memory"][:-2])/pow(1024,2),
-            }
-
-        command = (
-            "{} --kubeconfig={} -n cadvisor get pods -o=json".format(
-                self.kubectl_command,
-                self.kubectl_config_path,
-            )
-        )
-        try:
-            # execute the kubectl command and capture the output
-            cadvisor_pods = json.loads(subprocess.check_output(command.split()))
-        except subprocess.CalledProcessError as e:
-            # handle any errors if the command fails
-            print("Error executing kubectl command:", e)
-            return nodeSpecs
-
-        for cadvisor_pod in cadvisor_pods["items"]:
-            if "nodeName" in cadvisor_pod["spec"]:
-                nodeSpecs[cadvisor_pod["spec"]["nodeName"]]["cadvisor"] = cadvisor_pod["metadata"]["name"]
-
-        return nodeSpecs
     
     def processMigrationPolicy(self, migration_policy, nodeInfo):
         """
@@ -159,6 +99,74 @@ class NBIConnector:
             "mem_surge_capacity": mem_surge_capacity,
             "mobility-migration-factor": mobility_migration_factor,
         }
+
+    def get_container_info(self, appis=None):
+        """
+        Interacts with both OSM's NBI and the Kubernetes API to get information relating to the every OSM-deployed container
+
+        Parameters
+        ----------
+        nodeSpecs : dict
+            dictionary storing information relating to the cluster's nodes
+        appis : dict
+            MEC Application Instances information received from the OSS
+        """
+
+        # TODO: This solution only works for single domain currently. Later when I implement multi-domain, I will need to change this a bit
+        container_to_app = {}
+        app_metrics = {}
+
+        # iterate through each application instance
+        for appi in appis.values():
+            for domain, clusters in sorted(appi.get('instances', {}).items(), key=lambda x: (x[0] != DOMAIN, x)):
+                if domain == DOMAIN:
+                    # Metrics from apps running in the same domain (TODO: still need to check how I am going to implement applications from other domains into this)
+                    for cluster_id, cluster in clusters.items():
+                        for kdu, node in cluster["kdus"].items():
+                            command = (
+                                "{} --kubeconfig={} get pods -A -l osm.etsi.org/ns-id={} -l osm.etsi.org/kdu-name={} -o=json".format(
+                                    self.kubectl_command,
+                                    os.path.join(self.kubectl_config_path, cluster_id),
+                                    cluster["ns_id"],
+                                    kdu,
+                                )
+                            )
+
+                            try:
+                                # Execute the kubectl command and capture the output
+                                k8s_info = json.loads(subprocess.check_output(command.split()))
+                            except subprocess.CalledProcessError as e:
+                                # Handle any errors if the command fails
+                                print("Error executing kubectl command:", e)
+                                continue
+                                
+                            for pod in k8s_info["items"]:
+                                if (
+                                    ("deletionGracePeriodSeconds" in pod["metadata"] and "deletionTimestamp" in pod["metadata"]) 
+                                    or "nodeName" not in pod["spec"] 
+                                    or "containerStatuses" not in pod["status"]
+                                ):
+                                    continue
+
+                                # iterate through each container
+                                containers = pod["status"]["containerStatuses"]
+                                for container in containers:
+                                    if "containerID" in container:
+                                        # # store the container's information in the containerInfo dictionary associated to its ID
+                                        container_to_app[container["containerID"].strip('"').split('/')[-1]] = {
+                                            "domain": domain,
+                                            "cluster_id": cluster_id,
+                                            "appi_id": appi.get("appi_id"),
+                                            "kdu": kdu,
+                                            "pod": pod["metadata"]["name"],
+                                            "name": container['name'],
+                                            "node": node,
+                                        }
+
+                                        app_metrics.setdefault(appi.get("appi_id"), {}).setdefault(kdu, {"pods": {}, "metrics": {}})["pods"].setdefault(pod["metadata"]["name"], {"containers": {}, "metrics": {}})["containers"][container["containerID"].strip('"').split('/')[-1]] = {"name": container['name'], "node": node, "metrics": {}}
+
+        # TODO: Important: There is a way of getting the ip of the container running the app pod["hostIP"]
+        return container_to_app, app_metrics
 
     def getContainerInfo(self, nodeSpecs, mec_apps=None):
         """
@@ -247,7 +255,7 @@ class NBIConnector:
                     nodeName = pod["spec"]["nodeName"]
                     migration_policy = None
                     if mec_apps:
-                        for mec_app in mec_apps:
+                        for mec_app in mec_apps.values():
                             if (mec_app["appi_id"] == ns_id
                                 and mec_app["vnf_id"] == vnf_id
                                 and mec_app["kdu_id"] == kdu_instance

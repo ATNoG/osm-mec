@@ -13437,7 +13437,7 @@ class yc_cpu_criteria_mec_app_descriptor__mec_appd_migration_policy_cpu_criteria
 
   YANG Description: Criteria that defines when an application migration is executed due to unmet CPU requirements.
   """
-  __slots__ = ('_path_helper', '_extmethods', '__allocated_cpu','__cpu_surge_capacity','__cpu_threshold_time',)
+  __slots__ = ('_path_helper', '_extmethods', '__allocated_cpu','__cpu_surge_capacity','__cpu_threshold_time','__cooldown_time',)
 
   _yang_name = 'cpu-criteria'
   _yang_namespace = 'http://example.com/ns/mec-app-descriptor'
@@ -13449,9 +13449,10 @@ class yc_cpu_criteria_mec_app_descriptor__mec_appd_migration_policy_cpu_criteria
     self._path_helper = False
 
     self._extmethods = False
-    self.__allocated_cpu = YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="allocated-cpu", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=True)
-    self.__cpu_surge_capacity = YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="cpu-surge-capacity", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=True)
-    self.__cpu_threshold_time = YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="cpu-threshold-time", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=True)
+    self.__allocated_cpu = YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="allocated-cpu", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=False)
+    self.__cpu_surge_capacity = YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="cpu-surge-capacity", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=False)
+    self.__cpu_threshold_time = YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="cpu-threshold-time", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=False)
+    self.__cooldown_time = YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="cooldown-time", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=False)
 
     load = kwargs.pop("load", None)
     if args:
@@ -13501,12 +13502,12 @@ class yc_cpu_criteria_mec_app_descriptor__mec_appd_migration_policy_cpu_criteria
     if hasattr(v, "_utype"):
       v = v._utype(v)
     try:
-      t = YANGDynClass(v,base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="allocated-cpu", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=True)
+      t = YANGDynClass(v,base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="allocated-cpu", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=False)
     except (TypeError, ValueError):
       raise ValueError({
           'error-string': """allocated_cpu must be of a type compatible with uint32""",
           'defined-type': "uint32",
-          'generated-type': """YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="allocated-cpu", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=True)""",
+          'generated-type': """YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="allocated-cpu", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=False)""",
         })
 
     self.__allocated_cpu = t
@@ -13514,7 +13515,7 @@ class yc_cpu_criteria_mec_app_descriptor__mec_appd_migration_policy_cpu_criteria
       self._set()
 
   def _unset_allocated_cpu(self):
-    self.__allocated_cpu = YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="allocated-cpu", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=True)
+    self.__allocated_cpu = YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="allocated-cpu", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=False)
 
 
   def _get_cpu_surge_capacity(self):
@@ -13538,12 +13539,12 @@ class yc_cpu_criteria_mec_app_descriptor__mec_appd_migration_policy_cpu_criteria
     if hasattr(v, "_utype"):
       v = v._utype(v)
     try:
-      t = YANGDynClass(v,base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="cpu-surge-capacity", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=True)
+      t = YANGDynClass(v,base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="cpu-surge-capacity", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=False)
     except (TypeError, ValueError):
       raise ValueError({
           'error-string': """cpu_surge_capacity must be of a type compatible with uint32""",
           'defined-type': "uint32",
-          'generated-type': """YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="cpu-surge-capacity", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=True)""",
+          'generated-type': """YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="cpu-surge-capacity", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=False)""",
         })
 
     self.__cpu_surge_capacity = t
@@ -13551,7 +13552,7 @@ class yc_cpu_criteria_mec_app_descriptor__mec_appd_migration_policy_cpu_criteria
       self._set()
 
   def _unset_cpu_surge_capacity(self):
-    self.__cpu_surge_capacity = YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="cpu-surge-capacity", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=True)
+    self.__cpu_surge_capacity = YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="cpu-surge-capacity", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=False)
 
 
   def _get_cpu_threshold_time(self):
@@ -13575,12 +13576,12 @@ class yc_cpu_criteria_mec_app_descriptor__mec_appd_migration_policy_cpu_criteria
     if hasattr(v, "_utype"):
       v = v._utype(v)
     try:
-      t = YANGDynClass(v,base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="cpu-threshold-time", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=True)
+      t = YANGDynClass(v,base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="cpu-threshold-time", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=False)
     except (TypeError, ValueError):
       raise ValueError({
           'error-string': """cpu_threshold_time must be of a type compatible with uint32""",
           'defined-type': "uint32",
-          'generated-type': """YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="cpu-threshold-time", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=True)""",
+          'generated-type': """YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="cpu-threshold-time", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=False)""",
         })
 
     self.__cpu_threshold_time = t
@@ -13588,14 +13589,52 @@ class yc_cpu_criteria_mec_app_descriptor__mec_appd_migration_policy_cpu_criteria
       self._set()
 
   def _unset_cpu_threshold_time(self):
-    self.__cpu_threshold_time = YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="cpu-threshold-time", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=True)
-
-  allocated_cpu = __builtin__.property(_get_allocated_cpu, _set_allocated_cpu)
-  cpu_surge_capacity = __builtin__.property(_get_cpu_surge_capacity, _set_cpu_surge_capacity)
-  cpu_threshold_time = __builtin__.property(_get_cpu_threshold_time, _set_cpu_threshold_time)
+    self.__cpu_threshold_time = YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="cpu-threshold-time", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=False)
 
 
-  _pyangbind_elements = OrderedDict([('allocated_cpu', allocated_cpu), ('cpu_surge_capacity', cpu_surge_capacity), ('cpu_threshold_time', cpu_threshold_time), ])
+  def _get_cooldown_time(self):
+    """
+    Getter method for cooldown_time, mapped from YANG variable /mec_appd/migration_policy/cpu_criteria/cooldown_time (uint32)
+
+    YANG Description: The time (in seconds) that must elapse before the migration policy can be re-evaluated after a migration.
+    """
+    return self.__cooldown_time
+      
+  def _set_cooldown_time(self, v, load=False):
+    """
+    Setter method for cooldown_time, mapped from YANG variable /mec_appd/migration_policy/cpu_criteria/cooldown_time (uint32)
+    If this variable is read-only (config: false) in the
+    source YANG file, then _set_cooldown_time is considered as a private
+    method. Backends looking to populate this variable should
+    do so via calling thisObj._set_cooldown_time() directly.
+
+    YANG Description: The time (in seconds) that must elapse before the migration policy can be re-evaluated after a migration.
+    """
+    if hasattr(v, "_utype"):
+      v = v._utype(v)
+    try:
+      t = YANGDynClass(v,base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="cooldown-time", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=False)
+    except (TypeError, ValueError):
+      raise ValueError({
+          'error-string': """cooldown_time must be of a type compatible with uint32""",
+          'defined-type': "uint32",
+          'generated-type': """YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="cooldown-time", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=False)""",
+        })
+
+    self.__cooldown_time = t
+    if hasattr(self, '_set'):
+      self._set()
+
+  def _unset_cooldown_time(self):
+    self.__cooldown_time = YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="cooldown-time", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=False)
+
+  allocated_cpu = __builtin__.property(_get_allocated_cpu)
+  cpu_surge_capacity = __builtin__.property(_get_cpu_surge_capacity)
+  cpu_threshold_time = __builtin__.property(_get_cpu_threshold_time)
+  cooldown_time = __builtin__.property(_get_cooldown_time)
+
+
+  _pyangbind_elements = OrderedDict([('allocated_cpu', allocated_cpu), ('cpu_surge_capacity', cpu_surge_capacity), ('cpu_threshold_time', cpu_threshold_time), ('cooldown_time', cooldown_time), ])
 
 
 class yc_mem_criteria_mec_app_descriptor__mec_appd_migration_policy_mem_criteria(PybindBase):
@@ -13607,7 +13646,7 @@ class yc_mem_criteria_mec_app_descriptor__mec_appd_migration_policy_mem_criteria
 
   YANG Description: Criteria that defines when an application migration is executed due to unmet memory requirements.
   """
-  __slots__ = ('_path_helper', '_extmethods', '__allocated_mem','__mem_surge_capacity','__mem_threshold_time',)
+  __slots__ = ('_path_helper', '_extmethods', '__allocated_mem','__mem_surge_capacity','__mem_threshold_time','__cooldown_time',)
 
   _yang_name = 'mem-criteria'
   _yang_namespace = 'http://example.com/ns/mec-app-descriptor'
@@ -13619,9 +13658,10 @@ class yc_mem_criteria_mec_app_descriptor__mec_appd_migration_policy_mem_criteria
     self._path_helper = False
 
     self._extmethods = False
-    self.__allocated_mem = YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="allocated-mem", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=True)
-    self.__mem_surge_capacity = YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="mem-surge-capacity", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=True)
-    self.__mem_threshold_time = YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="mem-threshold-time", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=True)
+    self.__allocated_mem = YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="allocated-mem", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=False)
+    self.__mem_surge_capacity = YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="mem-surge-capacity", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=False)
+    self.__mem_threshold_time = YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="mem-threshold-time", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=False)
+    self.__cooldown_time = YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="cooldown-time", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=False)
 
     load = kwargs.pop("load", None)
     if args:
@@ -13671,12 +13711,12 @@ class yc_mem_criteria_mec_app_descriptor__mec_appd_migration_policy_mem_criteria
     if hasattr(v, "_utype"):
       v = v._utype(v)
     try:
-      t = YANGDynClass(v,base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="allocated-mem", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=True)
+      t = YANGDynClass(v,base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="allocated-mem", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=False)
     except (TypeError, ValueError):
       raise ValueError({
           'error-string': """allocated_mem must be of a type compatible with uint32""",
           'defined-type': "uint32",
-          'generated-type': """YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="allocated-mem", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=True)""",
+          'generated-type': """YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="allocated-mem", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=False)""",
         })
 
     self.__allocated_mem = t
@@ -13684,7 +13724,7 @@ class yc_mem_criteria_mec_app_descriptor__mec_appd_migration_policy_mem_criteria
       self._set()
 
   def _unset_allocated_mem(self):
-    self.__allocated_mem = YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="allocated-mem", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=True)
+    self.__allocated_mem = YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="allocated-mem", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=False)
 
 
   def _get_mem_surge_capacity(self):
@@ -13708,12 +13748,12 @@ class yc_mem_criteria_mec_app_descriptor__mec_appd_migration_policy_mem_criteria
     if hasattr(v, "_utype"):
       v = v._utype(v)
     try:
-      t = YANGDynClass(v,base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="mem-surge-capacity", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=True)
+      t = YANGDynClass(v,base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="mem-surge-capacity", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=False)
     except (TypeError, ValueError):
       raise ValueError({
           'error-string': """mem_surge_capacity must be of a type compatible with uint32""",
           'defined-type': "uint32",
-          'generated-type': """YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="mem-surge-capacity", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=True)""",
+          'generated-type': """YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="mem-surge-capacity", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=False)""",
         })
 
     self.__mem_surge_capacity = t
@@ -13721,7 +13761,7 @@ class yc_mem_criteria_mec_app_descriptor__mec_appd_migration_policy_mem_criteria
       self._set()
 
   def _unset_mem_surge_capacity(self):
-    self.__mem_surge_capacity = YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="mem-surge-capacity", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=True)
+    self.__mem_surge_capacity = YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="mem-surge-capacity", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=False)
 
 
   def _get_mem_threshold_time(self):
@@ -13745,12 +13785,12 @@ class yc_mem_criteria_mec_app_descriptor__mec_appd_migration_policy_mem_criteria
     if hasattr(v, "_utype"):
       v = v._utype(v)
     try:
-      t = YANGDynClass(v,base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="mem-threshold-time", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=True)
+      t = YANGDynClass(v,base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="mem-threshold-time", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=False)
     except (TypeError, ValueError):
       raise ValueError({
           'error-string': """mem_threshold_time must be of a type compatible with uint32""",
           'defined-type': "uint32",
-          'generated-type': """YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="mem-threshold-time", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=True)""",
+          'generated-type': """YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="mem-threshold-time", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=False)""",
         })
 
     self.__mem_threshold_time = t
@@ -13758,14 +13798,52 @@ class yc_mem_criteria_mec_app_descriptor__mec_appd_migration_policy_mem_criteria
       self._set()
 
   def _unset_mem_threshold_time(self):
-    self.__mem_threshold_time = YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="mem-threshold-time", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=True)
-
-  allocated_mem = __builtin__.property(_get_allocated_mem, _set_allocated_mem)
-  mem_surge_capacity = __builtin__.property(_get_mem_surge_capacity, _set_mem_surge_capacity)
-  mem_threshold_time = __builtin__.property(_get_mem_threshold_time, _set_mem_threshold_time)
+    self.__mem_threshold_time = YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="mem-threshold-time", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=False)
 
 
-  _pyangbind_elements = OrderedDict([('allocated_mem', allocated_mem), ('mem_surge_capacity', mem_surge_capacity), ('mem_threshold_time', mem_threshold_time), ])
+  def _get_cooldown_time(self):
+    """
+    Getter method for cooldown_time, mapped from YANG variable /mec_appd/migration_policy/mem_criteria/cooldown_time (uint32)
+
+    YANG Description: The time (in seconds) that must elapse before the migration policy can be re-evaluated after a migration.
+    """
+    return self.__cooldown_time
+      
+  def _set_cooldown_time(self, v, load=False):
+    """
+    Setter method for cooldown_time, mapped from YANG variable /mec_appd/migration_policy/mem_criteria/cooldown_time (uint32)
+    If this variable is read-only (config: false) in the
+    source YANG file, then _set_cooldown_time is considered as a private
+    method. Backends looking to populate this variable should
+    do so via calling thisObj._set_cooldown_time() directly.
+
+    YANG Description: The time (in seconds) that must elapse before the migration policy can be re-evaluated after a migration.
+    """
+    if hasattr(v, "_utype"):
+      v = v._utype(v)
+    try:
+      t = YANGDynClass(v,base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="cooldown-time", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=False)
+    except (TypeError, ValueError):
+      raise ValueError({
+          'error-string': """cooldown_time must be of a type compatible with uint32""",
+          'defined-type': "uint32",
+          'generated-type': """YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="cooldown-time", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=False)""",
+        })
+
+    self.__cooldown_time = t
+    if hasattr(self, '_set'):
+      self._set()
+
+  def _unset_cooldown_time(self):
+    self.__cooldown_time = YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="cooldown-time", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=False)
+
+  allocated_mem = __builtin__.property(_get_allocated_mem)
+  mem_surge_capacity = __builtin__.property(_get_mem_surge_capacity)
+  mem_threshold_time = __builtin__.property(_get_mem_threshold_time)
+  cooldown_time = __builtin__.property(_get_cooldown_time)
+
+
+  _pyangbind_elements = OrderedDict([('allocated_mem', allocated_mem), ('mem_surge_capacity', mem_surge_capacity), ('mem_threshold_time', mem_threshold_time), ('cooldown_time', cooldown_time), ])
 
 
 class yc_mobility_criteria_mec_app_descriptor__mec_appd_migration_policy_mobility_criteria(PybindBase):
@@ -13777,7 +13855,7 @@ class yc_mobility_criteria_mec_app_descriptor__mec_appd_migration_policy_mobilit
 
   YANG Description: Criteria that defines when an application migration is executed due to unmet mobility requirements.
   """
-  __slots__ = ('_path_helper', '_extmethods', '__mobility_migration_factor','__mobility_threshold_time',)
+  __slots__ = ('_path_helper', '_extmethods', '__mobility_migration_factor','__mobility_threshold_time','__cooldown_time',)
 
   _yang_name = 'mobility-criteria'
   _yang_namespace = 'http://example.com/ns/mec-app-descriptor'
@@ -13789,8 +13867,9 @@ class yc_mobility_criteria_mec_app_descriptor__mec_appd_migration_policy_mobilit
     self._path_helper = False
 
     self._extmethods = False
-    self.__mobility_migration_factor = YANGDynClass(base=RestrictedClassType(base_type=Decimal, restriction_dict={'range': ['0.0 .. 1.0']}), is_leaf=True, yang_name="mobility-migration-factor", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='decimal64', is_config=True)
-    self.__mobility_threshold_time = YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="mobility-threshold-time", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=True)
+    self.__mobility_migration_factor = YANGDynClass(base=RestrictedClassType(base_type=Decimal, restriction_dict={'range': ['0.0 .. 1.0']}), is_leaf=True, yang_name="mobility-migration-factor", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='decimal64', is_config=False)
+    self.__mobility_threshold_time = YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="mobility-threshold-time", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=False)
+    self.__cooldown_time = YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="cooldown-time", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=False)
 
     load = kwargs.pop("load", None)
     if args:
@@ -13840,12 +13919,12 @@ class yc_mobility_criteria_mec_app_descriptor__mec_appd_migration_policy_mobilit
     if hasattr(v, "_utype"):
       v = v._utype(v)
     try:
-      t = YANGDynClass(v,base=RestrictedClassType(base_type=Decimal, restriction_dict={'range': ['0.0 .. 1.0']}), is_leaf=True, yang_name="mobility-migration-factor", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='decimal64', is_config=True)
+      t = YANGDynClass(v,base=RestrictedClassType(base_type=Decimal, restriction_dict={'range': ['0.0 .. 1.0']}), is_leaf=True, yang_name="mobility-migration-factor", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='decimal64', is_config=False)
     except (TypeError, ValueError):
       raise ValueError({
           'error-string': """mobility_migration_factor must be of a type compatible with decimal64""",
           'defined-type': "decimal64",
-          'generated-type': """YANGDynClass(base=RestrictedClassType(base_type=Decimal, restriction_dict={'range': ['0.0 .. 1.0']}), is_leaf=True, yang_name="mobility-migration-factor", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='decimal64', is_config=True)""",
+          'generated-type': """YANGDynClass(base=RestrictedClassType(base_type=Decimal, restriction_dict={'range': ['0.0 .. 1.0']}), is_leaf=True, yang_name="mobility-migration-factor", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='decimal64', is_config=False)""",
         })
 
     self.__mobility_migration_factor = t
@@ -13853,7 +13932,7 @@ class yc_mobility_criteria_mec_app_descriptor__mec_appd_migration_policy_mobilit
       self._set()
 
   def _unset_mobility_migration_factor(self):
-    self.__mobility_migration_factor = YANGDynClass(base=RestrictedClassType(base_type=Decimal, restriction_dict={'range': ['0.0 .. 1.0']}), is_leaf=True, yang_name="mobility-migration-factor", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='decimal64', is_config=True)
+    self.__mobility_migration_factor = YANGDynClass(base=RestrictedClassType(base_type=Decimal, restriction_dict={'range': ['0.0 .. 1.0']}), is_leaf=True, yang_name="mobility-migration-factor", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='decimal64', is_config=False)
 
 
   def _get_mobility_threshold_time(self):
@@ -13877,12 +13956,12 @@ class yc_mobility_criteria_mec_app_descriptor__mec_appd_migration_policy_mobilit
     if hasattr(v, "_utype"):
       v = v._utype(v)
     try:
-      t = YANGDynClass(v,base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="mobility-threshold-time", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=True)
+      t = YANGDynClass(v,base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="mobility-threshold-time", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=False)
     except (TypeError, ValueError):
       raise ValueError({
           'error-string': """mobility_threshold_time must be of a type compatible with uint32""",
           'defined-type': "uint32",
-          'generated-type': """YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="mobility-threshold-time", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=True)""",
+          'generated-type': """YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="mobility-threshold-time", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=False)""",
         })
 
     self.__mobility_threshold_time = t
@@ -13890,13 +13969,51 @@ class yc_mobility_criteria_mec_app_descriptor__mec_appd_migration_policy_mobilit
       self._set()
 
   def _unset_mobility_threshold_time(self):
-    self.__mobility_threshold_time = YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="mobility-threshold-time", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=True)
-
-  mobility_migration_factor = __builtin__.property(_get_mobility_migration_factor, _set_mobility_migration_factor)
-  mobility_threshold_time = __builtin__.property(_get_mobility_threshold_time, _set_mobility_threshold_time)
+    self.__mobility_threshold_time = YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="mobility-threshold-time", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=False)
 
 
-  _pyangbind_elements = OrderedDict([('mobility_migration_factor', mobility_migration_factor), ('mobility_threshold_time', mobility_threshold_time), ])
+  def _get_cooldown_time(self):
+    """
+    Getter method for cooldown_time, mapped from YANG variable /mec_appd/migration_policy/mobility_criteria/cooldown_time (uint32)
+
+    YANG Description: The time (in seconds) that must elapse before the migration policy can be re-evaluated after a migration.
+    """
+    return self.__cooldown_time
+      
+  def _set_cooldown_time(self, v, load=False):
+    """
+    Setter method for cooldown_time, mapped from YANG variable /mec_appd/migration_policy/mobility_criteria/cooldown_time (uint32)
+    If this variable is read-only (config: false) in the
+    source YANG file, then _set_cooldown_time is considered as a private
+    method. Backends looking to populate this variable should
+    do so via calling thisObj._set_cooldown_time() directly.
+
+    YANG Description: The time (in seconds) that must elapse before the migration policy can be re-evaluated after a migration.
+    """
+    if hasattr(v, "_utype"):
+      v = v._utype(v)
+    try:
+      t = YANGDynClass(v,base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="cooldown-time", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=False)
+    except (TypeError, ValueError):
+      raise ValueError({
+          'error-string': """cooldown_time must be of a type compatible with uint32""",
+          'defined-type': "uint32",
+          'generated-type': """YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="cooldown-time", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=False)""",
+        })
+
+    self.__cooldown_time = t
+    if hasattr(self, '_set'):
+      self._set()
+
+  def _unset_cooldown_time(self):
+    self.__cooldown_time = YANGDynClass(base=RestrictedClassType(base_type=long, restriction_dict={'range': ['0..4294967295']}, int_size=32), is_leaf=True, yang_name="cooldown-time", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='uint32', is_config=False)
+
+  mobility_migration_factor = __builtin__.property(_get_mobility_migration_factor)
+  mobility_threshold_time = __builtin__.property(_get_mobility_threshold_time)
+  cooldown_time = __builtin__.property(_get_cooldown_time)
+
+
+  _pyangbind_elements = OrderedDict([('mobility_migration_factor', mobility_migration_factor), ('mobility_threshold_time', mobility_threshold_time), ('cooldown_time', cooldown_time), ])
 
 
 class yc_migration_policy_mec_app_descriptor__mec_appd_migration_policy(PybindBase):
@@ -13908,7 +14025,7 @@ class yc_migration_policy_mec_app_descriptor__mec_appd_migration_policy(PybindBa
 
   YANG Description: If present, it represents the application monitoring policy
   """
-  __slots__ = ('_path_helper', '_extmethods', '__id','__name','__enabled','__migration_operation_type','__cpu_criteria','__mem_criteria','__mobility_criteria',)
+  __slots__ = ('_path_helper', '_extmethods', '__artifact','__enabled','__cpu_criteria','__mem_criteria','__mobility_criteria',)
 
   _yang_name = 'migration-policy'
   _yang_namespace = 'http://example.com/ns/mec-app-descriptor'
@@ -13920,13 +14037,11 @@ class yc_migration_policy_mec_app_descriptor__mec_appd_migration_policy(PybindBa
     self._path_helper = False
 
     self._extmethods = False
-    self.__id = YANGDynClass(base=six.text_type, is_leaf=True, yang_name="id", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='string', is_config=True)
-    self.__name = YANGDynClass(base=six.text_type, is_leaf=True, yang_name="name", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='string', is_config=True)
-    self.__enabled = YANGDynClass(base=YANGBool, default=YANGBool("true"), is_leaf=True, yang_name="enabled", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='boolean', is_config=True)
-    self.__migration_operation_type = YANGDynClass(base=RestrictedClassType(base_type=six.text_type,                                     restriction_type="dict_key",                                     restriction_arg={'AND': {'value': 1}, 'OR': {'value': 2}},), default=six.text_type("OR"), is_leaf=True, yang_name="migration-operation-type", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='migration-criteria-operation', is_config=True)
-    self.__cpu_criteria = YANGDynClass(base=yc_cpu_criteria_mec_app_descriptor__mec_appd_migration_policy_cpu_criteria, is_container='container', yang_name="cpu-criteria", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, extensions=None, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='container', is_config=True)
-    self.__mem_criteria = YANGDynClass(base=yc_mem_criteria_mec_app_descriptor__mec_appd_migration_policy_mem_criteria, is_container='container', yang_name="mem-criteria", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, extensions=None, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='container', is_config=True)
-    self.__mobility_criteria = YANGDynClass(base=yc_mobility_criteria_mec_app_descriptor__mec_appd_migration_policy_mobility_criteria, is_container='container', yang_name="mobility-criteria", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, extensions=None, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='container', is_config=True)
+    self.__artifact = YANGDynClass(base=six.text_type, is_leaf=True, yang_name="artifact", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, is_keyval=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='string', is_config=False)
+    self.__enabled = YANGDynClass(base=YANGBool, default=YANGBool("true"), is_leaf=True, yang_name="enabled", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='boolean', is_config=False)
+    self.__cpu_criteria = YANGDynClass(base=yc_cpu_criteria_mec_app_descriptor__mec_appd_migration_policy_cpu_criteria, is_container='container', yang_name="cpu-criteria", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, extensions=None, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='container', is_config=False)
+    self.__mem_criteria = YANGDynClass(base=yc_mem_criteria_mec_app_descriptor__mec_appd_migration_policy_mem_criteria, is_container='container', yang_name="mem-criteria", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, extensions=None, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='container', is_config=False)
+    self.__mobility_criteria = YANGDynClass(base=yc_mobility_criteria_mec_app_descriptor__mec_appd_migration_policy_mobility_criteria, is_container='container', yang_name="mobility-criteria", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, extensions=None, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='container', is_config=False)
 
     load = kwargs.pop("load", None)
     if args:
@@ -13955,78 +14070,46 @@ class yc_migration_policy_mec_app_descriptor__mec_appd_migration_policy(PybindBa
     else:
       return ['mec-appd', 'migration-policy']
 
-  def _get_id(self):
+  def _get_artifact(self):
     """
-    Getter method for id, mapped from YANG variable /mec_appd/migration_policy/id (string)
+    Getter method for artifact, mapped from YANG variable /mec_appd/migration_policy/artifact (string)
 
-    YANG Description: Unique identifier for the migration policy.
+    YANG Description: Name of the artifact that the migration policy is associated with. If it is not specified, the migration policy applies to all artifacts.
     """
-    return self.__id
+    return self.__artifact
       
-  def _set_id(self, v, load=False):
+  def _set_artifact(self, v, load=False):
     """
-    Setter method for id, mapped from YANG variable /mec_appd/migration_policy/id (string)
+    Setter method for artifact, mapped from YANG variable /mec_appd/migration_policy/artifact (string)
     If this variable is read-only (config: false) in the
-    source YANG file, then _set_id is considered as a private
+    source YANG file, then _set_artifact is considered as a private
     method. Backends looking to populate this variable should
-    do so via calling thisObj._set_id() directly.
+    do so via calling thisObj._set_artifact() directly.
 
-    YANG Description: Unique identifier for the migration policy.
+    YANG Description: Name of the artifact that the migration policy is associated with. If it is not specified, the migration policy applies to all artifacts.
     """
+    parent = getattr(self, "_parent", None)
+    if parent is not None and load is False:
+      raise AttributeError("Cannot set keys directly when" +
+                             " within an instantiated list")
+
     if hasattr(v, "_utype"):
       v = v._utype(v)
     try:
-      t = YANGDynClass(v,base=six.text_type, is_leaf=True, yang_name="id", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='string', is_config=True)
+      t = YANGDynClass(v,base=six.text_type, is_leaf=True, yang_name="artifact", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, is_keyval=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='string', is_config=False)
     except (TypeError, ValueError):
       raise ValueError({
-          'error-string': """id must be of a type compatible with string""",
+          'error-string': """artifact must be of a type compatible with string""",
           'defined-type': "string",
-          'generated-type': """YANGDynClass(base=six.text_type, is_leaf=True, yang_name="id", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='string', is_config=True)""",
+          'generated-type': """YANGDynClass(base=six.text_type, is_leaf=True, yang_name="artifact", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, is_keyval=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='string', is_config=False)""",
         })
 
-    self.__id = t
+    self.__artifact = t
     if hasattr(self, '_set'):
       self._set()
 
-  def _unset_id(self):
-    self.__id = YANGDynClass(base=six.text_type, is_leaf=True, yang_name="id", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='string', is_config=True)
-
-
-  def _get_name(self):
-    """
-    Getter method for name, mapped from YANG variable /mec_appd/migration_policy/name (string)
-
-    YANG Description: Name of the migration policy.
-    """
-    return self.__name
-      
-  def _set_name(self, v, load=False):
-    """
-    Setter method for name, mapped from YANG variable /mec_appd/migration_policy/name (string)
-    If this variable is read-only (config: false) in the
-    source YANG file, then _set_name is considered as a private
-    method. Backends looking to populate this variable should
-    do so via calling thisObj._set_name() directly.
-
-    YANG Description: Name of the migration policy.
-    """
-    if hasattr(v, "_utype"):
-      v = v._utype(v)
-    try:
-      t = YANGDynClass(v,base=six.text_type, is_leaf=True, yang_name="name", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='string', is_config=True)
-    except (TypeError, ValueError):
-      raise ValueError({
-          'error-string': """name must be of a type compatible with string""",
-          'defined-type': "string",
-          'generated-type': """YANGDynClass(base=six.text_type, is_leaf=True, yang_name="name", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='string', is_config=True)""",
-        })
-
-    self.__name = t
-    if hasattr(self, '_set'):
-      self._set()
-
-  def _unset_name(self):
-    self.__name = YANGDynClass(base=six.text_type, is_leaf=True, yang_name="name", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='string', is_config=True)
+  def _unset_artifact(self):
+    self.__artifact = YANGDynClass(base=six.text_type, is_leaf=True, yang_name="artifact", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, is_keyval=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='string', is_config=False)
 
 
   def _get_enabled(self):
@@ -14050,12 +14133,12 @@ class yc_migration_policy_mec_app_descriptor__mec_appd_migration_policy(PybindBa
     if hasattr(v, "_utype"):
       v = v._utype(v)
     try:
-      t = YANGDynClass(v,base=YANGBool, default=YANGBool("true"), is_leaf=True, yang_name="enabled", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='boolean', is_config=True)
+      t = YANGDynClass(v,base=YANGBool, default=YANGBool("true"), is_leaf=True, yang_name="enabled", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='boolean', is_config=False)
     except (TypeError, ValueError):
       raise ValueError({
           'error-string': """enabled must be of a type compatible with boolean""",
           'defined-type': "boolean",
-          'generated-type': """YANGDynClass(base=YANGBool, default=YANGBool("true"), is_leaf=True, yang_name="enabled", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='boolean', is_config=True)""",
+          'generated-type': """YANGDynClass(base=YANGBool, default=YANGBool("true"), is_leaf=True, yang_name="enabled", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='boolean', is_config=False)""",
         })
 
     self.__enabled = t
@@ -14063,48 +14146,7 @@ class yc_migration_policy_mec_app_descriptor__mec_appd_migration_policy(PybindBa
       self._set()
 
   def _unset_enabled(self):
-    self.__enabled = YANGDynClass(base=YANGBool, default=YANGBool("true"), is_leaf=True, yang_name="enabled", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='boolean', is_config=True)
-
-
-  def _get_migration_operation_type(self):
-    """
-    Getter method for migration_operation_type, mapped from YANG variable /mec_appd/migration_policy/migration_operation_type (migration-criteria-operation)
-
-    YANG Description: Operation to be applied to check between migration criterias to
- check if the migration threshold condition has been met.
- Defaults to OR
-    """
-    return self.__migration_operation_type
-      
-  def _set_migration_operation_type(self, v, load=False):
-    """
-    Setter method for migration_operation_type, mapped from YANG variable /mec_appd/migration_policy/migration_operation_type (migration-criteria-operation)
-    If this variable is read-only (config: false) in the
-    source YANG file, then _set_migration_operation_type is considered as a private
-    method. Backends looking to populate this variable should
-    do so via calling thisObj._set_migration_operation_type() directly.
-
-    YANG Description: Operation to be applied to check between migration criterias to
- check if the migration threshold condition has been met.
- Defaults to OR
-    """
-    if hasattr(v, "_utype"):
-      v = v._utype(v)
-    try:
-      t = YANGDynClass(v,base=RestrictedClassType(base_type=six.text_type,                                     restriction_type="dict_key",                                     restriction_arg={'AND': {'value': 1}, 'OR': {'value': 2}},), default=six.text_type("OR"), is_leaf=True, yang_name="migration-operation-type", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='migration-criteria-operation', is_config=True)
-    except (TypeError, ValueError):
-      raise ValueError({
-          'error-string': """migration_operation_type must be of a type compatible with migration-criteria-operation""",
-          'defined-type': "mec-app-descriptor:migration-criteria-operation",
-          'generated-type': """YANGDynClass(base=RestrictedClassType(base_type=six.text_type,                                     restriction_type="dict_key",                                     restriction_arg={'AND': {'value': 1}, 'OR': {'value': 2}},), default=six.text_type("OR"), is_leaf=True, yang_name="migration-operation-type", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='migration-criteria-operation', is_config=True)""",
-        })
-
-    self.__migration_operation_type = t
-    if hasattr(self, '_set'):
-      self._set()
-
-  def _unset_migration_operation_type(self):
-    self.__migration_operation_type = YANGDynClass(base=RestrictedClassType(base_type=six.text_type,                                     restriction_type="dict_key",                                     restriction_arg={'AND': {'value': 1}, 'OR': {'value': 2}},), default=six.text_type("OR"), is_leaf=True, yang_name="migration-operation-type", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='migration-criteria-operation', is_config=True)
+    self.__enabled = YANGDynClass(base=YANGBool, default=YANGBool("true"), is_leaf=True, yang_name="enabled", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='boolean', is_config=False)
 
 
   def _get_cpu_criteria(self):
@@ -14128,12 +14170,12 @@ class yc_migration_policy_mec_app_descriptor__mec_appd_migration_policy(PybindBa
     if hasattr(v, "_utype"):
       v = v._utype(v)
     try:
-      t = YANGDynClass(v,base=yc_cpu_criteria_mec_app_descriptor__mec_appd_migration_policy_cpu_criteria, is_container='container', yang_name="cpu-criteria", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, extensions=None, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='container', is_config=True)
+      t = YANGDynClass(v,base=yc_cpu_criteria_mec_app_descriptor__mec_appd_migration_policy_cpu_criteria, is_container='container', yang_name="cpu-criteria", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, extensions=None, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='container', is_config=False)
     except (TypeError, ValueError):
       raise ValueError({
           'error-string': """cpu_criteria must be of a type compatible with container""",
           'defined-type': "container",
-          'generated-type': """YANGDynClass(base=yc_cpu_criteria_mec_app_descriptor__mec_appd_migration_policy_cpu_criteria, is_container='container', yang_name="cpu-criteria", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, extensions=None, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='container', is_config=True)""",
+          'generated-type': """YANGDynClass(base=yc_cpu_criteria_mec_app_descriptor__mec_appd_migration_policy_cpu_criteria, is_container='container', yang_name="cpu-criteria", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, extensions=None, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='container', is_config=False)""",
         })
 
     self.__cpu_criteria = t
@@ -14141,7 +14183,7 @@ class yc_migration_policy_mec_app_descriptor__mec_appd_migration_policy(PybindBa
       self._set()
 
   def _unset_cpu_criteria(self):
-    self.__cpu_criteria = YANGDynClass(base=yc_cpu_criteria_mec_app_descriptor__mec_appd_migration_policy_cpu_criteria, is_container='container', yang_name="cpu-criteria", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, extensions=None, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='container', is_config=True)
+    self.__cpu_criteria = YANGDynClass(base=yc_cpu_criteria_mec_app_descriptor__mec_appd_migration_policy_cpu_criteria, is_container='container', yang_name="cpu-criteria", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, extensions=None, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='container', is_config=False)
 
 
   def _get_mem_criteria(self):
@@ -14165,12 +14207,12 @@ class yc_migration_policy_mec_app_descriptor__mec_appd_migration_policy(PybindBa
     if hasattr(v, "_utype"):
       v = v._utype(v)
     try:
-      t = YANGDynClass(v,base=yc_mem_criteria_mec_app_descriptor__mec_appd_migration_policy_mem_criteria, is_container='container', yang_name="mem-criteria", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, extensions=None, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='container', is_config=True)
+      t = YANGDynClass(v,base=yc_mem_criteria_mec_app_descriptor__mec_appd_migration_policy_mem_criteria, is_container='container', yang_name="mem-criteria", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, extensions=None, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='container', is_config=False)
     except (TypeError, ValueError):
       raise ValueError({
           'error-string': """mem_criteria must be of a type compatible with container""",
           'defined-type': "container",
-          'generated-type': """YANGDynClass(base=yc_mem_criteria_mec_app_descriptor__mec_appd_migration_policy_mem_criteria, is_container='container', yang_name="mem-criteria", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, extensions=None, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='container', is_config=True)""",
+          'generated-type': """YANGDynClass(base=yc_mem_criteria_mec_app_descriptor__mec_appd_migration_policy_mem_criteria, is_container='container', yang_name="mem-criteria", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, extensions=None, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='container', is_config=False)""",
         })
 
     self.__mem_criteria = t
@@ -14178,7 +14220,7 @@ class yc_migration_policy_mec_app_descriptor__mec_appd_migration_policy(PybindBa
       self._set()
 
   def _unset_mem_criteria(self):
-    self.__mem_criteria = YANGDynClass(base=yc_mem_criteria_mec_app_descriptor__mec_appd_migration_policy_mem_criteria, is_container='container', yang_name="mem-criteria", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, extensions=None, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='container', is_config=True)
+    self.__mem_criteria = YANGDynClass(base=yc_mem_criteria_mec_app_descriptor__mec_appd_migration_policy_mem_criteria, is_container='container', yang_name="mem-criteria", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, extensions=None, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='container', is_config=False)
 
 
   def _get_mobility_criteria(self):
@@ -14202,12 +14244,12 @@ class yc_migration_policy_mec_app_descriptor__mec_appd_migration_policy(PybindBa
     if hasattr(v, "_utype"):
       v = v._utype(v)
     try:
-      t = YANGDynClass(v,base=yc_mobility_criteria_mec_app_descriptor__mec_appd_migration_policy_mobility_criteria, is_container='container', yang_name="mobility-criteria", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, extensions=None, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='container', is_config=True)
+      t = YANGDynClass(v,base=yc_mobility_criteria_mec_app_descriptor__mec_appd_migration_policy_mobility_criteria, is_container='container', yang_name="mobility-criteria", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, extensions=None, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='container', is_config=False)
     except (TypeError, ValueError):
       raise ValueError({
           'error-string': """mobility_criteria must be of a type compatible with container""",
           'defined-type': "container",
-          'generated-type': """YANGDynClass(base=yc_mobility_criteria_mec_app_descriptor__mec_appd_migration_policy_mobility_criteria, is_container='container', yang_name="mobility-criteria", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, extensions=None, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='container', is_config=True)""",
+          'generated-type': """YANGDynClass(base=yc_mobility_criteria_mec_app_descriptor__mec_appd_migration_policy_mobility_criteria, is_container='container', yang_name="mobility-criteria", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, extensions=None, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='container', is_config=False)""",
         })
 
     self.__mobility_criteria = t
@@ -14215,18 +14257,16 @@ class yc_migration_policy_mec_app_descriptor__mec_appd_migration_policy(PybindBa
       self._set()
 
   def _unset_mobility_criteria(self):
-    self.__mobility_criteria = YANGDynClass(base=yc_mobility_criteria_mec_app_descriptor__mec_appd_migration_policy_mobility_criteria, is_container='container', yang_name="mobility-criteria", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, extensions=None, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='container', is_config=True)
+    self.__mobility_criteria = YANGDynClass(base=yc_mobility_criteria_mec_app_descriptor__mec_appd_migration_policy_mobility_criteria, is_container='container', yang_name="mobility-criteria", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, extensions=None, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='container', is_config=False)
 
-  id = __builtin__.property(_get_id, _set_id)
-  name = __builtin__.property(_get_name, _set_name)
-  enabled = __builtin__.property(_get_enabled, _set_enabled)
-  migration_operation_type = __builtin__.property(_get_migration_operation_type, _set_migration_operation_type)
-  cpu_criteria = __builtin__.property(_get_cpu_criteria, _set_cpu_criteria)
-  mem_criteria = __builtin__.property(_get_mem_criteria, _set_mem_criteria)
-  mobility_criteria = __builtin__.property(_get_mobility_criteria, _set_mobility_criteria)
+  artifact = __builtin__.property(_get_artifact)
+  enabled = __builtin__.property(_get_enabled)
+  cpu_criteria = __builtin__.property(_get_cpu_criteria)
+  mem_criteria = __builtin__.property(_get_mem_criteria)
+  mobility_criteria = __builtin__.property(_get_mobility_criteria)
 
 
-  _pyangbind_elements = OrderedDict([('id', id), ('name', name), ('enabled', enabled), ('migration_operation_type', migration_operation_type), ('cpu_criteria', cpu_criteria), ('mem_criteria', mem_criteria), ('mobility_criteria', mobility_criteria), ])
+  _pyangbind_elements = OrderedDict([('artifact', artifact), ('enabled', enabled), ('cpu_criteria', cpu_criteria), ('mem_criteria', mem_criteria), ('mobility_criteria', mobility_criteria), ])
 
 
 class yc_artifacts_mec_app_descriptor__mec_appd_artifacts(PybindBase):
@@ -14526,7 +14566,7 @@ class yc_mec_appd_mec_app_descriptor__mec_appd(PybindBase):
     self.__change_app_instance_state_op_config = YANGDynClass(base=yc_change_app_instance_state_op_config_mec_app_descriptor__mec_appd_change_app_instance_state_op_config, is_container='container', yang_name="change-app-instance-state-op-config", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, extensions=None, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='container', is_config=True)
     self.__user_context_transfer_capability = YANGDynClass(base=yc_user_context_transfer_capability_mec_app_descriptor__mec_appd_user_context_transfer_capability, is_container='container', yang_name="user-context-transfer-capability", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, extensions=None, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='container', is_config=True)
     self.__network_policy = YANGDynClass(base=yc_network_policy_mec_app_descriptor__mec_appd_network_policy, is_container='container', yang_name="network-policy", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, extensions=None, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='container', is_config=True)
-    self.__migration_policy = YANGDynClass(base=yc_migration_policy_mec_app_descriptor__mec_appd_migration_policy, is_container='container', yang_name="migration-policy", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, extensions=None, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='container', is_config=True)
+    self.__migration_policy = YANGDynClass(base=YANGListType("artifact",yc_migration_policy_mec_app_descriptor__mec_appd_migration_policy, yang_name="migration-policy", parent=self, is_container='list', user_ordered=False, path_helper=self._path_helper, yang_keys='artifact', extensions=None), is_container='list', yang_name="migration-policy", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, extensions=None, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='list', is_config=False)
     self.__artifacts = YANGDynClass(base=YANGListType("name",yc_artifacts_mec_app_descriptor__mec_appd_artifacts, yang_name="artifacts", parent=self, is_container='list', user_ordered=False, path_helper=self._path_helper, yang_keys='name', extensions=None), is_container='list', yang_name="artifacts", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, extensions=None, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='list', is_config=True)
 
     load = kwargs.pop("load", None)
@@ -15483,7 +15523,7 @@ class yc_mec_appd_mec_app_descriptor__mec_appd(PybindBase):
 
   def _get_migration_policy(self):
     """
-    Getter method for migration_policy, mapped from YANG variable /mec_appd/migration_policy (container)
+    Getter method for migration_policy, mapped from YANG variable /mec_appd/migration_policy (list)
 
     YANG Description: If present, it represents the application monitoring policy
     """
@@ -15491,7 +15531,7 @@ class yc_mec_appd_mec_app_descriptor__mec_appd(PybindBase):
       
   def _set_migration_policy(self, v, load=False):
     """
-    Setter method for migration_policy, mapped from YANG variable /mec_appd/migration_policy (container)
+    Setter method for migration_policy, mapped from YANG variable /mec_appd/migration_policy (list)
     If this variable is read-only (config: false) in the
     source YANG file, then _set_migration_policy is considered as a private
     method. Backends looking to populate this variable should
@@ -15502,12 +15542,12 @@ class yc_mec_appd_mec_app_descriptor__mec_appd(PybindBase):
     if hasattr(v, "_utype"):
       v = v._utype(v)
     try:
-      t = YANGDynClass(v,base=yc_migration_policy_mec_app_descriptor__mec_appd_migration_policy, is_container='container', yang_name="migration-policy", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, extensions=None, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='container', is_config=True)
+      t = YANGDynClass(v,base=YANGListType("artifact",yc_migration_policy_mec_app_descriptor__mec_appd_migration_policy, yang_name="migration-policy", parent=self, is_container='list', user_ordered=False, path_helper=self._path_helper, yang_keys='artifact', extensions=None), is_container='list', yang_name="migration-policy", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, extensions=None, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='list', is_config=False)
     except (TypeError, ValueError):
       raise ValueError({
-          'error-string': """migration_policy must be of a type compatible with container""",
-          'defined-type': "container",
-          'generated-type': """YANGDynClass(base=yc_migration_policy_mec_app_descriptor__mec_appd_migration_policy, is_container='container', yang_name="migration-policy", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, extensions=None, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='container', is_config=True)""",
+          'error-string': """migration_policy must be of a type compatible with list""",
+          'defined-type': "list",
+          'generated-type': """YANGDynClass(base=YANGListType("artifact",yc_migration_policy_mec_app_descriptor__mec_appd_migration_policy, yang_name="migration-policy", parent=self, is_container='list', user_ordered=False, path_helper=self._path_helper, yang_keys='artifact', extensions=None), is_container='list', yang_name="migration-policy", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, extensions=None, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='list', is_config=False)""",
         })
 
     self.__migration_policy = t
@@ -15515,7 +15555,7 @@ class yc_mec_appd_mec_app_descriptor__mec_appd(PybindBase):
       self._set()
 
   def _unset_migration_policy(self):
-    self.__migration_policy = YANGDynClass(base=yc_migration_policy_mec_app_descriptor__mec_appd_migration_policy, is_container='container', yang_name="migration-policy", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, extensions=None, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='container', is_config=True)
+    self.__migration_policy = YANGDynClass(base=YANGListType("artifact",yc_migration_policy_mec_app_descriptor__mec_appd_migration_policy, yang_name="migration-policy", parent=self, is_container='list', user_ordered=False, path_helper=self._path_helper, yang_keys='artifact', extensions=None), is_container='list', yang_name="migration-policy", parent=self, path_helper=self._path_helper, extmethods=self._extmethods, register_paths=True, extensions=None, namespace='http://example.com/ns/mec-app-descriptor', defining_module='mec-app-descriptor', yang_type='list', is_config=False)
 
 
   def _get_artifacts(self):
@@ -15579,7 +15619,7 @@ class yc_mec_appd_mec_app_descriptor__mec_appd(PybindBase):
   change_app_instance_state_op_config = __builtin__.property(_get_change_app_instance_state_op_config, _set_change_app_instance_state_op_config)
   user_context_transfer_capability = __builtin__.property(_get_user_context_transfer_capability, _set_user_context_transfer_capability)
   network_policy = __builtin__.property(_get_network_policy, _set_network_policy)
-  migration_policy = __builtin__.property(_get_migration_policy, _set_migration_policy)
+  migration_policy = __builtin__.property(_get_migration_policy)
   artifacts = __builtin__.property(_get_artifacts, _set_artifacts)
 
 

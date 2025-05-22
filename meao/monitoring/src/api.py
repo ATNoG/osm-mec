@@ -1,21 +1,20 @@
-from main import app, meao
+from flask import Flask, jsonify
+from src.meao import MEAO
 
-@app.route("/containerInfo", methods=["GET"])
-def get_container_info():
-    return jsonify(ContainerInfo=meao.get_container_ids())
+app = Flask(__name__)
 
-
-@app.route("/nodeSpecs", methods=["GET"])
+@app.route("/NodeSpecs", methods=["GET"])
 def get_node_specs():
     return jsonify(NodeSpecs=meao.get_node_specs())
 
+@app.route("/ContainerIds", methods=["GET"])
+def get_container_info():
+    return jsonify(ContainerIds=meao.get_container_ids())
 
-@app.route("/nodeSpecs/<hostname>", methods=["GET"])
-def get_node_specs_hostname(hostname):
-    return jsonify(NodeSpecs=meao.get_node_specs(hostname))
+def run(meao_: MEAO, host="0.0.0.0", port=8001):
+    global meao
+    meao = meao_
+    app.run(host=host, port=port)
 
-
-@app.route("/nodeSpecs/update", methods=["GET"])
-def update_node_specs():
-    meao.update_node_specs()
-    return jsonify(NodeSpecs=meao.get_node_specs())
+if __name__ == "__main__":
+    run()

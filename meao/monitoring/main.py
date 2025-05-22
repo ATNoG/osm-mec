@@ -1,7 +1,9 @@
 import os
+import threading
 from src.utils.nbi_k8s_connector import NBIConnector
 from src.meao import MEAO
 from flask import Flask, jsonify
+import src.api as api
 import json
 
 app = Flask(__name__)
@@ -27,9 +29,10 @@ def main():
         kafka_producer_config
     )
 
-    meao.start()
-
-    app.run(host="0.0.0.0", port=8000)
+    # Flask API
+    threading.Thread(target=api.run, args=(meao, '0.0.0.0', 8001)).start()
+    # Start MEAO
+    meao.run()
 
 if __name__ == "__main__":
     main()

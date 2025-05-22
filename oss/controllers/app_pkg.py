@@ -112,7 +112,7 @@ class AppPkgController:
         cherrypy.response.status = response["status"]
 
     @cherrypy.tools.json_out()
-    def instantiate_app_pkg(self, app_pkg_id, vim_id, name, description, config=None, wait=False):
+    def instantiate_app_pkg(self, app_pkg_id, name, description, vim_id=None, config=None, wait=False):
         """
         /app_pkgs/{app_pkg_id}/instantiate (POST)
         """

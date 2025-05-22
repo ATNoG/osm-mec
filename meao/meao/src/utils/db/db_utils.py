@@ -16,6 +16,9 @@ class DB:
     @staticmethod
     def _get(id, collection):
         return db[collection].find_one({"_id": ObjectId(id)})
+    
+    def _get_by(collection, filter):
+        return db[collection].find_one(filter)
 
     @staticmethod
     def _find(collection, filter=None):
@@ -33,11 +36,27 @@ class DB:
     @staticmethod
     def _update(id, collection, data):
         db[collection].update_one({"_id": ObjectId(id)}, {"$set": data})
+    
+    @staticmethod
+    def _update_by(collection, filter, data):
+        db[collection].update_one(filter, {"$set": data})
+    
+    @staticmethod
+    def _general_update_by(collection, filter, data):
+        db[collection].update_one(filter, data)
 
     @staticmethod
     def _delete(id, collection):
         db[collection].delete_one({"_id": ObjectId(id)})
+    
+    @staticmethod
+    def _delete_by(collection, filter):
+        db[collection].delete_one(filter)
 
     @staticmethod
     def _exists(id, collection):
         return db[collection].find_one({"_id": ObjectId(id)}) is not None
+    
+    @staticmethod
+    def _exists_by(collection, filter):
+        return db[collection].find_one(filter) is not None

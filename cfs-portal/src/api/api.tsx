@@ -43,7 +43,7 @@ export const updateAppPkg = async (id: string, formData: FormData) => {
 
 // App Instance
 export const getAppI = async () => {
-    return await api.get('/appis');
+    return await api.get('/mec-appis');
 }
 
 export const terminateAppI = async (id: string) => {

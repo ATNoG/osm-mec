@@ -64,9 +64,21 @@ const FormDialog = ({ open, onClose, onSubmit, title, fields }: FormDialogProps)
                                 required={field.required}
                                 onChange={handleChange}
                             >
-                                {field.options?.map((option, index) => (
-                                    <MenuItem key={index} value={option}>{option}</MenuItem>
-                                ))}
+                                {field.options?.map((option, index) => {
+                                    if (typeof option === 'string') {
+                                        return (
+                                        <MenuItem key={index} value={option}>
+                                            {option}
+                                        </MenuItem>
+                                        );
+                                    } else {
+                                        return (
+                                        <MenuItem key={index} value={option.value}>
+                                            {option.label}
+                                        </MenuItem>
+                                        );
+                                    }
+                                })}
                             </TextField>
                         )}
                     </React.Fragment>

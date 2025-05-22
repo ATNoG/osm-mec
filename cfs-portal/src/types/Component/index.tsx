@@ -105,7 +105,7 @@ export type FormDialogField = {
   label: string,
   type: 'text' | 'select' | 'textarea',
   rows?: number,
-  options?: string[],
+  options?: Array<string | { label: string; value: string }>;
   required: boolean
 }
 

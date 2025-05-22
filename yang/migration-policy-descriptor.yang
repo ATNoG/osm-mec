@@ -3,18 +3,7 @@ module migration-policy-descriptor {
   prefix mp;
 
   description "YANG module for Migration Policy Descriptor.";
-
-  typedef migration-criteria-operation {
-    type enumeration {
-      enum AND {
-          value 1;
-      }
-      enum OR {
-          value 2;
-      }
-    }
-  }
-
+  
   typedef relational-operation-type {
     description
       "The relational operator used to define whether a migration
@@ -34,29 +23,15 @@ module migration-policy-descriptor {
   grouping migration-policy-descriptor {
     description "Migration Policy descriptor attributes.";
 
-    leaf id {
-        type string;
-        mandatory true;
-        description "Unique identifier for the migration policy.";
-    }
-
-    leaf name {
+    leaf artifact {
       type string;
-      description "Name of the migration policy.";
+      description "Name of the artifact that the migration policy is associated with. If it is not specified, the migration policy applies to all artifacts.";
     }
 
     leaf enabled {
       description "Specifies if the migration policy can be applied.";
       type boolean;
       default true;
-    }
-
-    leaf migration-operation-type {
-      type migration-criteria-operation;
-      description "Operation to be applied to check between migration criterias to
-                    check if the migration threshold condition has been met.
-                    Defaults to OR";
-      default OR;
     }
 
     container cpu-criteria {
@@ -74,6 +49,11 @@ module migration-policy-descriptor {
       
       leaf cpu-threshold-time {
         description "The duration (in seconds) for which the condition can be unmet before application migration is executed.";
+        type uint32;
+      }
+
+      leaf cooldown-time {
+        description "The time (in seconds) that must elapse before the migration policy can be re-evaluated after a migration.";
         type uint32;
       }
     }
@@ -95,6 +75,11 @@ module migration-policy-descriptor {
         description "The duration (in seconds) for which the condition can be unmet before application migration is executed.";
         type uint32;
       }
+
+      leaf cooldown-time {
+        description "The time (in seconds) that must elapse before the migration policy can be re-evaluated after a migration.";
+        type uint32;
+      }
     }
 
     container mobility-criteria {
@@ -110,6 +95,11 @@ module migration-policy-descriptor {
       
       leaf mobility-threshold-time {
         description "The duration (in seconds) for which the condition can be unmet before application migration is executed.";
+        type uint32;
+      }
+
+      leaf cooldown-time {
+        description "The time (in seconds) that must elapse before the migration policy can be re-evaluated after a migration.";
         type uint32;
       }
     }

@@ -7,7 +7,7 @@ from src.utils.osm import get_osm_client
 
 
 @handle_exceptions
-def callback(message):
+def callback(meao, message):
     app_pkg_id = message.get("app_pkg_id")
     updated_appd = message.get("appd_data")
 
@@ -35,4 +35,4 @@ def callback(message):
             delete_file(vnfd_file)
             delete_file(nsd_file)
 
-        return {"msg_id": message["msg_id"], "status": 200}
+        return {"status": 200}

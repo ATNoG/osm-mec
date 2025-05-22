@@ -51,8 +51,11 @@ const AppCatalog = () => {
             id: 'vim_id',
             label: 'VIM',
             type: 'select',
-            options: vimData.map((vim_id) => vim_id.name),
-            required: true,
+            options: vimData.map((vim) => ({
+                label: vim.name,
+                value: vim.id,
+            })),
+            required: false,
         },
         {
             id: 'config',

@@ -29,5 +29,6 @@ def validate_descriptor(data):
     try:
         pybindJSONDecoder.load_ietf_json(data, None, None, obj=appd, path_helper=True)
     except Exception as e:
+        print("Error loading descriptor:", e)
         raise HTTPError(422, str(e))
     return appd

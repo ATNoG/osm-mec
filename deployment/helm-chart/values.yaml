@@ -1,17 +1,21 @@
 osm:
-  # your osm host
-  host: nbi.localhost.nip.io  # REPLACE
+  host: nbi.localhost.nip.io
 
 meao:
   name: meao
   enabled: true
+  sharedKubectlConfigPath: /configs/
   deployment:
     replicas: 1
     image: ghcr.io/atnog/osm-mec/meao:main
     imagePullPolicy: Always
     restartPolicy: Always
     env:
+      KUBECTL_COMMAND: /usr/local/bin/kubectl
       KAFKA_GROUP_ID: "meao"
+    ports:
+      - containerPort: 8000
+        protocol: TCP
 
   monitoring:
     enabled: true
@@ -19,27 +23,51 @@ meao:
     deployment:
       image: ghcr.io/atnog/osm-mec/meao-monitoring:main
       ports:
-        - containerPort: 8000
+        - containerPort: 8001
           protocol: TCP
       imagePullPolicy: Always
       restartPolicy: Always
       env:
         KUBECTL_COMMAND: /usr/local/bin/kubectl
-        KUBECTL_CONFIG_PATH: kube_config
         RAW_METRICS_KAFKA_TOPIC: raw-metrics  # Raw Metrics
         MEH_METRICS_KAFKA_TOPIC: meh-metrics  # MEC Hosts Metrics
         UE_LATENCY_KAFKA_TOPIC: ue-lat
         SEND_CONTAINER_INFO_FREQ: "5"
         KAFKA_GROUP_ID: "meao-monitoring"
 
+  migration:
+    enabled: true
+    name: meao-migration
+    deployment:
+      image: ghcr.io/atnog/osm-mec/meao-migration:main
+      imagePullPolicy: Always
+      restartPolicy: Always
+      ports:
+        - containerPort: 8002
+          protocol: TCP
+      env:
+        KUBECTL_COMMAND: /usr/local/bin/kubectl
+        RAW_METRICS_KAFKA_TOPIC: raw-metrics  # Raw Metrics
+        MEH_METRICS_KAFKA_TOPIC: meh-metrics  # MEC Hosts Metrics
+        UE_LATENCY_KAFKA_TOPIC: ue-lat
+        SEND_CONTAINER_INFO_FREQ: "5"
+        KAFKA_GROUP_ID: "meao-migration"
+
   service:
     type: NodePort
     ports:
-      - name: "8000"
+      - name: "meao"
         port: 8000
         targetPort: 8000
         nodePort: 30800
-
+      - name: "meao-monitoring"
+        port: 8001
+        targetPort: 8001
+        nodePort: 30801
+      - name: "meao-migration"
+        port: 8002
+        targetPort: 8002
+        nodePort: 30802
 
 oss:
   enabled: true
@@ -76,7 +104,7 @@ kafka:
 
 cfsPortal:
   enabled: true
-  ossHost: localhost # REPLACE
+  ossHost: localhost
   deployment:
     replicas: 1
     image: ghcr.io/atnog/osm-mec/cfs-portal:main

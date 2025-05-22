@@ -8,11 +8,13 @@ helm -n osm-mec uninstall osm-mec
 docker build -t localhost:5000/cfs-portal:latest cfs-portal
 docker build -t localhost:5000/meao:latest meao/meao
 docker build -t localhost:5000/meao-monitoring:latest meao/monitoring
+docker build -t localhost:5000/meao-migration:latest meao/migration
 docker build -t localhost:5000/oss:latest oss
 
 docker push localhost:5000/cfs-portal:latest
 docker push localhost:5000/meao:latest
 docker push localhost:5000/meao-monitoring:latest
+docker push localhost:5000/meao-migration:latest
 docker push localhost:5000/oss:latest
 
 
@@ -32,6 +34,7 @@ helm -n osm-mec upgrade --install osm-mec deployment/helm-chart \
     --set cfsPortal.deployment.image=localhost:5000/cfs-portal:latest \
     --set meao.deployment.image=localhost:5000/meao:latest \
     --set meao.monitoring.deployment.image=localhost:5000/meao-monitoring:latest \
+    --set meao.migration.deployment.image=localhost:5000/meao-migration:latest \
     --set oss.deployment.image=localhost:5000/oss:latest \
     --set osm.host=$OSM_NBI \
     --set cfsPortal.ossHost=$K8S_DEFAULT_IP \

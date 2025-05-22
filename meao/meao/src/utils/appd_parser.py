@@ -15,6 +15,12 @@ class AppdParser:
             artifact["file"]
             for _, artifact in self.appd.mec_appd.artifacts.get().items()
         ]
+
+    def get_artifacts_names(self):
+        return [
+            artifact["name"]
+            for _, artifact in self.appd.mec_appd.artifacts.get().items()
+        ]
     
     def get_migration_policy(self):
         return self.appd.mec_appd.migration_policy.get()

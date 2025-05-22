@@ -78,7 +78,8 @@ const InstanceGrid = ({ minimalConfig = false, instanceCount }: InstanceGridProp
             const { data } = await getAppI();
             const formattedData = data.map((d: any) => ({
                 ...d,
-                'created-at': new Date(d['created-at'] * 1000)
+                'id': d['appi_id'],
+                'created-at': new Date(d['created-at']),
             }));
             setInstanceData(formattedData);
             if (instanceCount)
@@ -171,8 +172,9 @@ const InstanceGrid = ({ minimalConfig = false, instanceCount }: InstanceGridProp
         // Order data by created-at and apply pagination
         setRowCount(instanceData.length);
         const ordered_paginated_data = [...instanceData].sort((a, b) => {
-            return new Date(b['created-at']).getTime() - new Date(a['created-at']).getTime();
+            return b['created-at'] - a['created-at'];
         }).slice(page * pageSize, (page + 1) * pageSize);
+        console.log("Page Data: ", ordered_paginated_data);
 
         for (const key in ordered_paginated_data) {
             // Add a row as we want the apps to be displayed
