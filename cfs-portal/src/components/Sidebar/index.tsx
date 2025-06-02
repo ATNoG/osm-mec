@@ -13,6 +13,7 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import DashboardRoundedIcon from '@mui/icons-material/DashboardRounded';
 import ViewListRoundedIcon from '@mui/icons-material/ViewListRounded';
 import AccountTreeRoundedIcon from '@mui/icons-material/AccountTreeRounded';
+import Diversity2RoundedIcon from '@mui/icons-material/Diversity2Rounded';
 
 import { useTheme, styled } from '@mui/material';
 import { buttonSx, Drawer } from './sidebarStyles';
@@ -20,7 +21,8 @@ import { buttonSx, Drawer } from './sidebarStyles';
 const listItems = [
     { name: 'Dashboard', icon: <DashboardRoundedIcon />, path: '/dashboard' },
     { name: 'App Catalog', icon: <ViewListRoundedIcon />, path: '/app-catalog' },
-    { name: 'App Instances', icon: <AccountTreeRoundedIcon />, path: '/app-instances' }
+    { name: 'App Instances', icon: <AccountTreeRoundedIcon />, path: '/app-instances' },
+    { name: 'Federation', icon: <Diversity2RoundedIcon />, path: '/federation' },
 ];
 
 

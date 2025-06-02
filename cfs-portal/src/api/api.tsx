@@ -1,58 +1,75 @@
 import axios from "axios";
 
 const api = axios.create({
-    baseURL: 'http://' + (process.env.REACT_APP_OSS_HOST || 'localhost') + ':' + (process.env.REACT_APP_OSS_PORT || '8080') + '/oss/v1'
+  baseURL: 'http://' + (process.env.REACT_APP_OSS_HOST || 'localhost') + ':' + (process.env.REACT_APP_OSS_PORT || '8080') + '/oss/v1'
 });
 
 // App Package
 export const getAppPkg = async () => {
-    return await api.get('/app_pkgs');
+  return await api.get('/app_pkgs');
 }
 
 export const newAppPkg = async (formData: FormData) => {
-    return await api.post(
-        '/app_pkgs',
-        formData,
-        {
-            headers: {
-                'Content-Type': 'multipart/form-data',
-            }
-        }
-    );
+  return await api.post(
+    '/app_pkgs',
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      }
+    }
+  );
 }
 
 export const deleteAppPkg = async (id: string) => {
-    return await api.post(`/app_pkgs/${id}`);
+  return await api.post(`/app_pkgs/${id}`);
 }
 
 export const instantiateAppPkg = async (id: string, formData: FormData) => {
-    return await api.post(
-        `/app_pkgs/${id}/instantiate`,
-        formData,
-        { headers: { 'Content-Type': 'multipart/form-data' } }
-    );
+  return await api.post(
+    `/app_pkgs/${id}/instantiate`,
+    formData,
+    { headers: { 'Content-Type': 'multipart/form-data' } }
+  );
 }
 
 export const updateAppPkg = async (id: string, formData: FormData) => {
-    return await api.patch(
-        `/app_pkgs/${id}`,
-        formData,
-        { headers: { 'Content-Type': 'multipart/form-data' } }
-    );
+  return await api.patch(
+    `/app_pkgs/${id}`,
+    formData,
+    { headers: { 'Content-Type': 'multipart/form-data' } }
+  );
 }
 
 // App Instance
 export const getAppI = async () => {
-    return await api.get('/mec-appis');
+  return await api.get('/mec-appis');
 }
 
 export const terminateAppI = async (id: string) => {
-    return await api.post(`/appis/${id}`);
+  return await api.post(`/appis/${id}`);
 }
 
 // VIM
 export const getVims = async () => {
-    return await api.get('/vims');
+  return await api.get('/vims');
+}
+
+// Federation
+export const getFederations = async () => {
+  return await api.get('/federations');
+}
+  
+export const createFederation = async (formData: FormData) => {
+  return await api.post(
+    '/federations',
+    formData,
+    { headers: { 'Content-Type': 'multipart/form-data' } }
+  );
+}
+  
+export const deleteFederation = async (id: string) => {
+  return await api.delete(`/federations/${id}`);
 }
 
 export default api;

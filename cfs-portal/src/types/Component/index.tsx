@@ -30,6 +30,11 @@ export enum ConfigStatus {
   FAILED = 'failed',
 }
 
+export enum FederationStatus {
+  SUCCESS = 'success',
+  FAILED = 'failed',
+}
+
 export enum ActionType {
   CREATE = 'create',
   DELETE = 'delete',
@@ -40,7 +45,8 @@ export enum ActionType {
 
 export enum Item {
   APP = 'app',
-  INSTANCE = 'instance'
+  INSTANCE = 'instance',
+  FEDERATION = "federation",
 }
 
 export type ConfirmationDialogProps = {
@@ -66,15 +72,15 @@ export type InstanceData = {
   'operational-status': string;
   'config-status': string;
   'created-at': Date;
+  domain: string;
 }
 
 export type RowData = {
   id: string,
-  expand: boolean,
   name: string,
   description: string | null,
   details: string | null,
-  'current-meh': string | null,
+  'current-meh': Record<string, any> | null,
   'cpu-load': number | null,
   'mem-load': number | null,
   latency: number | null,
@@ -82,7 +88,7 @@ export type RowData = {
   'operational-status': OperationalStatus | null,
   'config-status': ConfigStatus | null,
   warnings: string | null,
-  actions: boolean,
+  appiId: string | null,
 }
 
 export type VimData = {
@@ -96,7 +102,6 @@ export type DropdownOption = {
 }
 
 export type DropdownButtonProps = {
-  title: string,
   options: DropdownOption[]
 }
 
@@ -107,6 +112,7 @@ export type FormDialogField = {
   rows?: number,
   options?: Array<string | { label: string; value: string }>;
   required: boolean
+  validate?: (value: string) => true | string;
 }
 
 export type FormDialogProps = {
@@ -147,14 +153,26 @@ export type SidebarProps = {
 }
 
 export type Metrics = {
-  [appiID: string]: {
-    [containerID: string]: {
-      mem_load: number | null,
-      cpu_load: number | null,
-      node: string | null,
-      latency: number | null,
-      kdu_id: string | null,
-      warning: string | null
+  "appis": {
+    [appiID: string]: {
+      [kduID: string]: {
+        "metrics": {
+          "mem-load": number | null,
+          "cpu-load": number | null,
+          latency: number | null,
+        }
+      }
     }
-  }
+  },
+  "nodes": {
+    [clusterID: string]: {
+      domain: string,
+      cluster: string,
+      node: string,
+      "metrics": {
+        "mem-load": number | null,
+        "cpu-load": number | null,
+      }
+    }
+  },
 }

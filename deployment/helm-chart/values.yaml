@@ -122,6 +122,7 @@ mongo:
     replicas: 1
     image: mongo:4.4
   service:
+    type: LoadBalancer
     port: 27017
     targetPort: 27017
   username: root

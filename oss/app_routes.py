@@ -81,6 +81,31 @@ endpoints = {
             "VimController",
             "GET",
         ),
+        # FEDERATION
+        (
+            "new_federation",
+            "/federations",
+            "FederationController",
+            "POST",
+        ),
+        (
+            "get_federation",
+            "/federations/{federation_id}",
+            "FederationController",
+            "GET",
+        ),
+        (
+            "list_federations",
+            "/federations",
+            "FederationController",
+            "GET",
+        ),
+        (
+            "delete_federation",
+            "/federations/{federation_id}",
+            "FederationController",
+            "DELETE",
+        ),
     ],
 }
 

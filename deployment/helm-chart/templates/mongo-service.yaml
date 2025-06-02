@@ -6,7 +6,7 @@ metadata:
     app: mongo
   name: mongo
 spec:
-  type: ClusterIP
+  type: {{ .Values.mongo.service.type }}
   ports:
     - name: "mongo"
       port: {{ .Values.mongo.service.port }}

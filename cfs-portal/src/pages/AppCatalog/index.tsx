@@ -79,7 +79,6 @@ const AppCatalog = () => {
             align: 'center',
             renderCell: (params) => (
                 <DropdownButton
-                    title='Actions'
                     options={
                         [
                             {

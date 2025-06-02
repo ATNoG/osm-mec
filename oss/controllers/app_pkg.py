@@ -1,7 +1,7 @@
 import cherrypy
 from utils.appd_validation import *
 from utils.cherrypy_utils import is_valid_id
-from utils.db import DB
+from utils.db import DB, db
 from utils.file_management import *
 from utils.kafka.kafka_utils import KafkaUtils
 from views.app_pkg import AppPkgView
@@ -23,7 +23,7 @@ class AppPkgController:
         """
         /app_pkgs (GET)
         """
-        app_pkgs = DB._list(self.collection)
+        app_pkgs = DB._list(self.collection, db=db)
         return [AppPkgView._list(app_pkg) for app_pkg in app_pkgs]
 
     @cherrypy.tools.json_out()
@@ -31,10 +31,10 @@ class AppPkgController:
         """
         /app_pkgs/{app_pkg_id} (GET)
         """
-        if not is_valid_id(app_pkg_id) or not DB._exists(app_pkg_id, self.collection):
+        if not is_valid_id(app_pkg_id) or not DB._exists(app_pkg_id, self.collection, db=db):
             raise cherrypy.HTTPError(404, "App package not found")
 
-        app_pkg = DB._get(app_pkg_id, self.collection)
+        app_pkg = DB._get(app_pkg_id, self.collection, db=db)
         return AppPkgView._get(app_pkg)
 
     @cherrypy.tools.json_out()
@@ -47,7 +47,7 @@ class AppPkgController:
         validate_descriptor(appd_data)
 
         app_pkg_id = DB._add(
-            self.collection, AppPkgView._save(appd_data.get("mec-appd"), appd_gz)
+            self.collection, AppPkgView._save(appd_data.get("mec-appd"), appd_gz), db=db
         )
 
         try:
@@ -57,14 +57,13 @@ class AppPkgController:
                 "new_app_pkg",
                 {"app_pkg_id": app_pkg_id},
             )
-            print("Sent:", {"app_pkg_id": app_pkg_id})
             response = KafkaUtils.wait_for_response(msg_id)
             print("Received response:", response)
 
             cherrypy.response.status = response["status"]
             return {"id": app_pkg_id}
         except Exception as e:
-            DB._delete(app_pkg_id, self.collection)
+            DB._delete(app_pkg_id, self.collection, db=db)
             raise e
 
     def update_app_pkg(self, appd, app_pkg_id):
@@ -75,7 +74,7 @@ class AppPkgController:
         appd_data = get_descriptor_data(appd_gz)
         validate_descriptor(appd_data)
 
-        if not is_valid_id(app_pkg_id) or not DB._exists(app_pkg_id, self.collection):
+        if not is_valid_id(app_pkg_id) or not DB._exists(app_pkg_id, self.collection, db=db):
             raise cherrypy.HTTPError(404, "App package not found")
 
         msg_id = KafkaUtils.send_message(
@@ -89,6 +88,7 @@ class AppPkgController:
             app_pkg_id,
             self.collection,
             AppPkgView._save(appd_data.get("mec-appd"), appd_gz),
+            db=db
         )
 
         cherrypy.response.status = response["status"]
@@ -97,7 +97,7 @@ class AppPkgController:
         """
         /app_pkgs/{app_pkg_id} (POST)
         """
-        if not is_valid_id(app_pkg_id) or not DB._exists(app_pkg_id, self.collection):
+        if not is_valid_id(app_pkg_id) or not DB._exists(app_pkg_id, self.collection, db=db):
             raise cherrypy.HTTPError(404, "App package not found")
 
         msg_id = KafkaUtils.send_message(
@@ -107,7 +107,7 @@ class AppPkgController:
         )
         response = KafkaUtils.wait_for_response(msg_id)
 
-        DB._delete(app_pkg_id, self.collection)
+        DB._delete(app_pkg_id, self.collection, db=db)
 
         cherrypy.response.status = response["status"]
 
@@ -116,7 +116,7 @@ class AppPkgController:
         """
         /app_pkgs/{app_pkg_id}/instantiate (POST)
         """
-        if not is_valid_id(app_pkg_id) or not DB._exists(app_pkg_id, self.collection):
+        if not is_valid_id(app_pkg_id) or not DB._exists(app_pkg_id, self.collection, db=db):
             raise cherrypy.HTTPError(404, "App package not found")
 
         wait = str(wait).lower() == "true"

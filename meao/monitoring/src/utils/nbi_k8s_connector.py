@@ -163,7 +163,7 @@ class NBIConnector:
                                             "node": node,
                                         }
 
-                                        app_metrics.setdefault(appi.get("appi_id"), {}).setdefault(kdu, {"pods": {}, "metrics": {}})["pods"].setdefault(pod["metadata"]["name"], {"containers": {}, "metrics": {}})["containers"][container["containerID"].strip('"').split('/')[-1]] = {"name": container['name'], "node": node, "metrics": {}}
+                                        app_metrics.setdefault(appi.get("appi_id"), {}).setdefault(kdu, {"node": node, "pods": {}, "metrics": {}})["pods"].setdefault(pod["metadata"]["name"], {"node": node, "containers": {}, "metrics": {}})["containers"][container["containerID"].strip('"').split('/')[-1]] = {"name": container['name'], "node": node, "metrics": {}}
 
         # TODO: Important: There is a way of getting the ip of the container running the app pod["hostIP"]
         return container_to_app, app_metrics

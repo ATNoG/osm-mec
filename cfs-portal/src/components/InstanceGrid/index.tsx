@@ -1,17 +1,20 @@
+import { useMemo } from 'react';
+import {
+  MaterialReactTable,
+  useMaterialReactTable,
+  type MRT_ColumnDef,
+} from 'material-react-table';
+
 import { useEffect, useState } from "react";
 import Box from "@mui/material/Box";
-import { DataGrid, GridColDef, GridRowParams, GridRenderCellParams } from '@mui/x-data-grid';
 import Typography from "@mui/material/Typography";
-import { IconButton, Tooltip, LinearProgress, Skeleton } from "@mui/material";
+import { Tooltip, LinearProgress, Skeleton } from "@mui/material";
 import { getAppI, terminateAppI } from "../../api/api";
-import { DropdownOption, InstanceData, OperationalStatus, ConfigStatus, ActionType, Item, InstanceGridProps, Metrics, RowData } from "../../types/Component";
+import { DropdownOption, OperationalStatus, ConfigStatus, ActionType, Item, InstanceGridProps, Metrics, RowData } from "../../types/Component";
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import AccessTimeFilledIcon from '@mui/icons-material/AccessTimeFilled';
 import StopCircleIcon from '@mui/icons-material/StopCircle';
-import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import toast from "../../utils/toast";
 import DetailsDialog from "../Dialog/DetailsDialog";
 import ConfirmationDialog from "../Dialog/ConfirmationDialog";
@@ -54,33 +57,89 @@ const terminateInstance = async (id: string) => {
 
 const InstanceGrid = ({ minimalConfig = false, instanceCount }: InstanceGridProps) => {
     // Data rows variables
-    const [instanceData, setInstanceData] = useState<InstanceData[]>([]);
+    const [instanceData, setInstanceData] = useState<RowData[]>([]);
     const [expandedRows, setExpandedRows] = useState<{ [key: string]: boolean }>({});
     const [metrics, setMetrics] = useState<Metrics | null>(null);
-    const [rowData, setRowData] = useState<RowData[]>([]);
+    // const [rowData, setRowData] = useState<RowData[]>([]);
 
     // Dialog variables
     const [loading, setLoading] = useState(true);
+    // const [loading, setLoading] = useState(false);
     const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
     const [detailsData, setDetailsData] = useState('');
     const [confirmationDialogOpen, setConfirmationDialogOpen] = useState(false);
     const [id, setId] = useState('');
     const [socket, setSocket] = useState<WebSocket | null>(null);
 
-    // Table Pagination
-    const [page, setPage] = useState(0);
-    const [pageSize, setPageSize] = useState(0);
-    const [rowCount, setRowCount] = useState(0);
+    // Get the color of the load based on the value
+    const getLoadColor = (load: number) => {
+        if (load < 40) {
+            return 'success';
+        } else if (load < 75) {
+            return 'warning';
+        } else {
+            return 'error';
+        }
+    }
+
+    const formatInstanceData = (data: any) => {
+        const formattedData: RowData[] = [];
+        for (const appi of data) {
+            // Add the App Instance as a row
+            formattedData.push({
+                id: appi["appi_id"],
+                name: appi.name,
+                description: appi.description || null, // Ensure description is not undefined
+                details: appi.details || null, // Ensure details is not undefined
+                'current-meh': {"domain": appi.domain, "cluster": null, "node": null}, // Ensure current-meh is not undefined
+                'cpu-load': null, // Placeholder for CPU load
+                'mem-load': null, // Placeholder for Memory load
+                latency: null, // Placeholder for latency
+                'created-at': new Date(appi['created-at']),
+                'operational-status': appi['operational-status'] || OperationalStatus.INIT, // Default to INIT if not provided
+                'config-status': appi['config-status'] || ConfigStatus.INIT, // Default to INIT if not provided
+                warnings: null, // Placeholder for warnings
+                appiId: null
+            });
+            
+            const kduNodes: Record<string, any> = {};
+            for (const [domainKey, domainValue] of Object.entries(appi.instances as Record<string, any>)) {
+                for (const [clusterKey, clusterValue] of Object.entries(domainValue as Record<string, any>)) {
+                    for (const [kduKey, node] of Object.entries(clusterValue.kdus)) {
+                        kduNodes[kduKey] = {"domain": domainKey, "cluster": clusterKey, "node": node}
+                    }
+                }
+            }
+
+            for (const [kduKey, kduValue] of Object.entries(appi.kdus as Record<string, any>)){
+                // Add each container as a sub-row
+                formattedData.push({
+                    id: kduKey,
+                    name: kduValue.name,
+                    description: `kdu: ${kduValue.name} helm-chart: ${kduValue["helm-chart"]} helm-version: ${kduValue["helm-version"]}`,
+                    details: '',
+                    'current-meh': kduNodes[kduKey],
+                    'cpu-load': null,
+                    'mem-load': null,
+                    latency: null,
+                    'created-at': kduValue.enable ? new Date(appi['created-at']) : null,
+                    'operational-status': kduValue.status || OperationalStatus.INIT,
+                    'config-status': kduValue.enable ? ConfigStatus.CONFIGURED : ConfigStatus.FAILED,
+                    warnings: kduValue.warning || null,
+                    appiId: appi["appi_id"]
+                });
+            }
+        }
+        console.log("Formatted Data: ", formattedData);
+
+        return formattedData;
+    }
 
     // Get the Rows to show in the DataGrid
     const getInstanceData = async () => {
         try {
             const { data } = await getAppI();
-            const formattedData = data.map((d: any) => ({
-                ...d,
-                'id': d['appi_id'],
-                'created-at': new Date(d['created-at']),
-            }));
+            const formattedData = formatInstanceData(data);
             setInstanceData(formattedData);
             if (instanceCount)
                 instanceCount(data.length);
@@ -122,30 +181,10 @@ const InstanceGrid = ({ minimalConfig = false, instanceCount }: InstanceGridProp
             socket.onopen = () => {
                 console.log('Connected to WebSocket');
             };
-            socket.onmessage = (event) => {
+            socket.onmessage = (event: any) => {
                 const data: Metrics = event.data ? JSON.parse(event.data) : {};
-                setMetrics((prevMetrics) => {
-                    if (!prevMetrics) {
-                        prevMetrics = {}
-                    }
-
-                    for (const appi_id in data) {
-                        if (!(appi_id in prevMetrics)) {
-                            prevMetrics[appi_id] = {}
-                        }
-
-                        for (const container_id in data[appi_id]) {
-                            prevMetrics[appi_id][container_id] = {
-                                mem_load: data[appi_id][container_id].mem_load != null && data[appi_id][container_id].mem_load >= 0 ? data[appi_id][container_id].mem_load.toFixed(2) : null,
-                                cpu_load: data[appi_id][container_id].cpu_load != null && data[appi_id][container_id].cpu_load >= 0  ? data[appi_id][container_id].cpu_load.toFixed(2) : null,
-                                latency: data[appi_id][container_id].latency != null && data[appi_id][container_id].latency >= 0  ? data[appi_id][container_id].latency.toFixed(2) : null,
-                                kdu_id: data[appi_id][container_id].kdu_id,
-                                warning: data[appi_id][container_id].warning,
-                                node: data[appi_id][container_id].node
-                            }
-                        }
-                    }
-                    return prevMetrics;
+                setMetrics((prevMetrics: any) => {
+                    return data;
                 });
             };
             socket.onclose = () => {
@@ -154,189 +193,132 @@ const InstanceGrid = ({ minimalConfig = false, instanceCount }: InstanceGridProp
         }
     }, [socket]);
 
-    // Get the color of the load based on the value
-    const getLoadColor = (load: number) => {
-        if (load < 40) {
-            return 'success';
-        } else if (load < 75) {
-            return 'warning';
-        } else {
-            return 'error';
-        }
-    }
-
-    // Update the rows based on the instance data and metrics
-    useEffect(() => {
-        let rows: any = [];
-
-        // Order data by created-at and apply pagination
-        setRowCount(instanceData.length);
-        const ordered_paginated_data = [...instanceData].sort((a, b) => {
-            return b['created-at'] - a['created-at'];
-        }).slice(page * pageSize, (page + 1) * pageSize);
-        console.log("Page Data: ", ordered_paginated_data);
-
-        for (const key in ordered_paginated_data) {
-            // Add a row as we want the apps to be displayed
-            const row_data: RowData = {
-                id: ordered_paginated_data[key].id,
-                expand: true,
-                name: ordered_paginated_data[key].name,
-                description: ordered_paginated_data[key].description,
-                details: ordered_paginated_data[key].details,
-                'current-meh': null,
-                'cpu-load': null,
-                'mem-load': null,
-                latency: null,
-                'created-at': ordered_paginated_data[key]['created-at'],
-                'operational-status': ordered_paginated_data[key]['operational-status'],
-                'config-status': ordered_paginated_data[key]['config-status'],
-                warnings: null,
-                actions: true
-            };
-            rows.push(row_data);
-
-            if (expandedRows[ordered_paginated_data[key].id]) {
-                // Add a row for each container as we want the containers to be displayed
-                if ( metrics && ordered_paginated_data[key].id in metrics){
-                    for (const container in metrics[ordered_paginated_data[key].id]) {
-                        const row_data: RowData = {
-                            id: container,
-                            expand: false,
-                            name: container,
-                            description: "kdu: " + metrics[ordered_paginated_data[key].id][container]['kdu_id'],
-                            details: '',
-                            'current-meh': metrics[ordered_paginated_data[key].id][container]['node'],
-                            'cpu-load': metrics[ordered_paginated_data[key].id][container]['cpu_load'],
-                            'mem-load': metrics[ordered_paginated_data[key].id][container]['mem_load'],
-                            latency: metrics[ordered_paginated_data[key].id][container]['latency'],
-                            'created-at': null,
-                            'operational-status': null,
-                            'config-status': null,
-                            warnings: metrics[ordered_paginated_data[key].id][container]['warning'],
-                            actions: false
-                        }
-                        rows.push(row_data);
-                    }
-                }
-            }
-        }
-        setRowData(rows);
-    }, [instanceData, expandedRows, metrics, page, pageSize]);
-
-    // Change the expanded state of a row to the opposite
-    const handleExpandClick = (id: string) => {
-        setExpandedRows((prev) => {
-            return {
-                ...prev,
-                [id]: !prev[id]
-            }
-            
-        });
-    };
-
-    // Columns for the DataGrid
-    const columns: GridColDef[] = [
+    const columns: MRT_ColumnDef<any>[] = [
         {
-            field: 'expand',
-            headerName: '',
-            width: 50,
-            renderCell: (params: GridRenderCellParams) => (
-                <>
-                    {
-                        (() => {
-                            if (!params.row.expand) {
-                                return null;
-                            }
-                            return (
-                                <IconButton
-                                    size="small"
-                                    onClick={() => handleExpandClick(params.row.id)}
-                                >
-                                    {expandedRows[params.row.id] ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-
-                                </IconButton>
-                            )
-                            
-                        })()
-                    }
-                </>
+            id: 'name', 
+            header: 'Name',
+            accessorKey: 'name',
+            enableColumnActions: false,
+            muiTableHeadCellProps: () => ({
+                align: 'left' as const,
+                sx: { minWidth: '180px', Width: '180px', maxWidth: '180px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'},
+            }),
+            muiTableBodyCellProps: () => ({
+                align: 'left' as const,
+                sx: { minWidth: '180px', Width: '180px', maxWidth: '180px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'},
+            }),
+            Cell: ({ row }: any) => (
+                <Tooltip title={ row.original.name }>
+                    <Typography variant="body2" noWrap sx={{ width: '100%', overflow: 'hidden', textOverflow: 'ellipsis'}}>
+                        {row.original.name}
+                    </Typography>
+                </Tooltip>
             ),
-        },
-        {
-            field: 'name',
-            headerName: 'Name',
-            width: 200
         },
         ...minimalConfig ? [] : [
             {
-                field: 'description',
-                headerName: 'Description',
-                flex: 1
+                header: 'Description',
+                accessorKey: 'description',
+                enableColumnActions: false,
+                muiTableHeadCellProps: () => ({
+                    align: 'left' as const,
+                    sx: { minWidth: '300px', Width: '300px', maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'},
+                }),
+                muiTableBodyCellProps: () => ({
+                    align: 'left' as const,
+                    sx: { minWidth: '300px', Width: '300px', maxWidth: '300px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'},
+                }),
+                Cell: ({ row }: any) => (
+                    <Tooltip title={ row.original.description }>
+                        <Typography variant="body2" noWrap sx={{ width: '100%', overflow: 'hidden', textOverflow: 'ellipsis'}}>
+                            {row.original.description}
+                        </Typography>
+                    </Tooltip>
+                ),
             }
         ],
         ...minimalConfig ? [] : [
             {
-                field: 'details',
-                headerName: 'Details',
-                flex: 1,
-                renderCell: (params: any) => (
-                    <Box display='flex' justifyContent='space-between' alignItems='center' width='100%'>
-                        <Typography
-                            variant='body2'
-                            overflow='hidden'
-                            textOverflow='ellipsis'
-                            whiteSpace='nowrap'
-                            flex='1'
-                        >
-                            {params.row.details}
+                header: 'Details',
+                accessorKey: 'details',
+                enableColumnActions: false,
+                muiTableHeadCellProps: () => ({
+                    align: 'left' as const,
+                    sx: { minWidth: '200px', Width: '200px', maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'},
+                }),
+                muiTableBodyCellProps: () => ({
+                    align: 'left' as const,
+                    sx: { minWidth: '200px', Width: '200px', maxWidth: '200px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'},
+                }),
+                Cell: ({row}: any) => (
+                    <Tooltip title={ row.original.details }>
+                        <Typography variant="body2" noWrap sx={{ width: '100%', overflow: 'hidden', textOverflow: 'ellipsis'}}>
+                            {row.original.details}
                         </Typography>
-                        <IconButton onClick={() => {
-                            setDetailsDialogOpen(true);
-                            setDetailsData(params.row.details);
-                        }}>
-                            <MoreHorizIcon />
-                        </IconButton>
-                    </Box >
+                    </Tooltip>
                 )
             }
         ],
         {
-            field: 'current-meh',
-            headerName: 'Current MEC Host',
-            width: 200,
-            type: 'string',
-            renderCell: (params: any) => {
-                const node = params.row['current-meh'];
+            header: 'Domain/Node',
+            accessorKey: 'current-meh',
+            enableColumnActions: false,
+            muiTableHeadCellProps: () => ({
+                align: 'center' as const,
+                sx: { minWidth: '180px', Width: '180px', maxWidth: '180px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'},
+            }),
+            muiTableBodyCellProps: () => ({
+                align: 'center' as const,
+                sx: { minWidth: '180px', Width: '180px', maxWidth: '180px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'},
+            }),
+            Cell: ({row}: any) => {
+                const domain = row.original['current-meh'].domain;
+                const cluster = row.original['current-meh'].cluster;
+                const node = row.original['current-meh'].node;
+
+                if (row.original.appiId !== undefined && row.original.appiId !== null) {
+                    return (
+                        <>
+                            <Tooltip title={ "Domain: " + domain + ", Cluster: " + cluster + ", Node: " + node }>
+                                <Typography variant="body2" noWrap sx={{ width: '100%', overflow: 'hidden', textOverflow: 'ellipsis'}}>
+                                    {node || domain || '-'}
+                                </Typography>
+                            </Tooltip>
+                        </>
+                    );
+                }
+
                 return (
                     <Box sx={{ position: 'relative', width: '100%' }}>
-                        {node !== undefined && node !== null ? (
-                            <>
-                                <Typography
-                                    variant="body2"
-                                >
-                                    {node}
-                                </Typography>
-                            </>) : (
-                            <Typography variant="body2" textAlign='center'>
-                                -
+                        <Tooltip title={ "Domain: " + domain}>
+                            <Typography variant="body2" noWrap sx={{ width: '100%', overflow: 'hidden', textOverflow: 'ellipsis'}}>
+                                {node || domain || '-'}
                             </Typography>
-                        )}
+                        </Tooltip>
                     </Box>
                 )
             }
         },
         {
-            field: 'cpu-load',
-            headerName: 'CPU (%)',
-            width: 70,
-            type: 'number',
-            headerAlign: 'center',
-            align: 'center',
-            renderCell: (params: any) => {
-                const cpuLoad: string = params.row['cpu-load'];
+            header: 'CPU (%)',
+            accessorKey: 'cpu-load',
+            enableColumnActions: false,
+            muiTableHeadCellProps: () => ({
+                align: 'center' as const,
+                sx: { minWidth: '100px', Width: '100px', maxWidth: '100px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'},
+            }),
+            muiTableBodyCellProps: () => ({
+                align: 'center' as const,
+                sx: { minWidth: '100px', Width: '100px', maxWidth: '100px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'},
+            }),
+            Cell: ({row}: any) => {
+                let metricsData;
+                if (row.original.appiId !== undefined && row.original.appiId !== null && metrics && metrics.appis[row.original.appiId] && metrics.appis[row.original.appiId].artifacts[row.original.name] && metrics.appis[row.original.appiId].artifacts[row.original.name].metrics) {
+                    metricsData = metrics.appis[row.original.appiId].artifacts[row.original.name].metrics;
+                }
+                const cpuLoad: string = metricsData ? metricsData['cpu-load'] : null;
                 return (
-                    <Box sx={{ position: 'relative', width: '100%' }}>
+                    <Box sx={{ position: 'relative', width: '60%', display: 'flex', margin: '0 auto', alignItems: 'center', justifyContent: 'center'}}>
                         {cpuLoad !== undefined && cpuLoad !== null ? (
                             <>
                                 <LinearProgress
@@ -345,21 +327,23 @@ const InstanceGrid = ({ minimalConfig = false, instanceCount }: InstanceGridProp
                                     sx={{ width: '100%', height: '30px' }}
                                     color={getLoadColor(Number(cpuLoad))}
                                 />
-                                <Typography
-                                    variant="body2"
-                                    fontWeight='bold'
-                                    sx={{
-                                        position: 'absolute',
-                                        top: 0,
-                                        left: '50%',
-                                        transform: 'translateX(-50%)',
-                                        width: '100%',
-                                        textAlign: 'center',
-                                        lineHeight: '30px'
-                                    }}
-                                >
-                                    {cpuLoad}
-                                </Typography>
+                                <Tooltip title={ cpuLoad }>
+                                    <Typography
+                                        variant="body2"
+                                        fontWeight='bold'
+                                        sx={{
+                                            position: 'absolute',
+                                            top: 0,
+                                            left: '50%',
+                                            transform: 'translateX(-50%)',
+                                            width: '100%',
+                                            textAlign: 'center',
+                                            lineHeight: '30px'
+                                        }}
+                                    >
+                                        {cpuLoad}
+                                    </Typography>
+                                </Tooltip>
                             </>) : (
                             <Typography variant="body2" textAlign='center'>
                                 -
@@ -370,16 +354,25 @@ const InstanceGrid = ({ minimalConfig = false, instanceCount }: InstanceGridProp
             }
         },
         {
-            field: 'mem-load',
-            headerName: 'Mem (%)',
-            width: 70,
-            type: 'number',
-            headerAlign: 'center',
-            align: 'center',
-            renderCell: (params: any) => {
-                const memLoad: string = params.row['mem-load'];
+            header: 'Mem (%)',
+            accessorKey: 'mem-load',
+            enableColumnActions: false,
+            muiTableHeadCellProps: () => ({
+                align: 'center' as const,
+                sx: { minWidth: '100px', Width: '100px', maxWidth: '100px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'},
+            }),
+            muiTableBodyCellProps: () => ({
+                align: 'center' as const,
+                sx: { minWidth: '100px', Width: '100px', maxWidth: '100px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'},
+            }),
+            Cell: ({row}: any) => {
+                let metricsData;
+                if (row.original.appiId !== undefined && row.original.appiId !== null && metrics && metrics.appis[row.original.appiId] && metrics.appis[row.original.appiId].artifacts[row.original.name] && metrics.appis[row.original.appiId].artifacts[row.original.name].metrics) {
+                    metricsData = metrics.appis[row.original.appiId].artifacts[row.original.name].metrics;
+                }
+                const memLoad: string = metricsData ? metricsData['mem-load'] : null;
                 return (
-                    <Box sx={{ position: 'relative', width: '100%' }}>
+                    <Box sx={{ position: 'relative', width: '60%', display: 'flex', margin: '0 auto', alignItems: 'center', justifyContent: 'center'}}>
                         {memLoad !== undefined && memLoad !== null ? (
                             <>
                                 <LinearProgress
@@ -388,21 +381,23 @@ const InstanceGrid = ({ minimalConfig = false, instanceCount }: InstanceGridProp
                                     sx={{ width: '100%', height: '30px' }}
                                     color={getLoadColor(Number(memLoad))}
                                 />
-                                <Typography
-                                    variant="body2"
-                                    fontWeight='bold'
-                                    sx={{
-                                        position: 'absolute',
-                                        top: 0,
-                                        left: '50%',
-                                        transform: 'translateX(-50%)',
-                                        width: '100%',
-                                        textAlign: 'center',
-                                        lineHeight: '30px'
-                                    }}
-                                >
-                                    {memLoad}
-                                </Typography>
+                                <Tooltip title={ memLoad }>
+                                    <Typography
+                                        variant="body2"
+                                        fontWeight='bold'
+                                        sx={{
+                                            position: 'absolute',
+                                            top: 0,
+                                            left: '50%',
+                                            transform: 'translateX(-50%)',
+                                            width: '100%',
+                                            textAlign: 'center',
+                                            lineHeight: '30px'
+                                        }}
+                                        >
+                                        {memLoad}
+                                    </Typography>
+                                </Tooltip>
                             </>) : (
                             <Typography variant="body2" textAlign='center'>
                                 -
@@ -413,81 +408,89 @@ const InstanceGrid = ({ minimalConfig = false, instanceCount }: InstanceGridProp
             }
         },
         {
-            field: 'latency',
-            headerName: 'Latency (ms)',
-            width: 100,
-            type: 'number',
-            headerAlign: 'center',
-            align: 'center',
-            renderCell: (params: any) => {
-                const latency: string = params.row.latency;
+            header: 'Latency',
+            accessorKey: 'latency',
+            enableColumnActions: false,
+            muiTableHeadCellProps: () => ({
+                align: 'center' as const,
+                sx: { minWidth: '100px', Width: '100px', maxWidth: '100px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'},
+            }),
+            muiTableBodyCellProps: () => ({
+                align: 'center' as const,
+                sx: { minWidth: '100px', Width: '100px', maxWidth: '100px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'},
+            }),
+            Cell: ({row}: any) => {
+                const latency: string = row.original.latency;
+                const color=getLoadColor(Number(latency));
                 return (
-                    <Box sx={{ position: 'relative', width: '100%' }}>
+                    <>
                         {latency !== undefined && latency !== null ? (
-                            <>
-                                <LinearProgress
-                                    variant="determinate"
-                                    value={Number(latency)}
-                                    sx={{ width: '100%', height: '30px' }}
-                                    color={getLoadColor(Number(latency))}
-                                />
-                                <Typography
-                                    variant="body2"
-                                    fontWeight='bold'
-                                    sx={{
-                                        position: 'absolute',
-                                        top: 0,
-                                        left: '50%',
-                                        transform: 'translateX(-50%)',
-                                        width: '100%',
-                                        textAlign: 'center',
-                                        lineHeight: '30px'
-                                    }}
-                                >
+                            <Tooltip title={ latency }>
+                                <Typography variant="body2" noWrap sx={(theme) => ({width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', color: theme.palette[color].main, fontWeight: 'bold'})}>
                                     {latency}
                                 </Typography>
-                            </>) : (
+                            </Tooltip>
+                        ) : (
                             <Typography variant="body2" textAlign='center'>
                                 -
                             </Typography>
                         )}
-                    </Box>
+                    </>
                 )
             }
         },
         ...minimalConfig ? [] : [
             {
-                field: 'created-at',
-                headerName: 'Created At',
-                width: 90,
-                type: 'date',
-                headerAlign: 'center',
-                align: 'center',
-                renderCell: (params: any) => (
-                    params.row['created-at'] !== undefined && params.row['created-at'] !== null ? (
-                        <Tooltip title={params.row['created-at'].toLocaleString()}>
+                accessorKey: 'created-at',
+                header: 'Created At',
+                // size: 20,
+                enableColumnActions: false,
+                muiTableHeadCellProps: () => ({
+                    align: 'center' as const,
+                    sx: { minWidth: '120px', Width: '120px', maxWidth: '120px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'},
+                }),
+                muiTableBodyCellProps: () => ({
+                    align: 'center' as const,
+                    sx: { minWidth: '120px', Width: '120px', maxWidth: '120px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'},
+                }),
+                Cell: ({ row }: any) => {
+                    const rawDate = row.original['created-at'];
+                    if (!rawDate) {
+                        return (
+                            <Typography variant="body2" textAlign="center">
+                                -
+                            </Typography>
+                        );  
+                    }
+                    const date = new Date(rawDate);
+                    return (
+                        <Tooltip title={date.toLocaleString('en-GB')}>
                             <Typography variant="body2">
-                                {params.row['created-at'].toLocaleDateString()}
+                                {date.toLocaleDateString('en-GB')}
                             </Typography>
                         </Tooltip>
-                    ) : (
-                        <Typography variant="body2" textAlign='center'>
-                            -
-                        </Typography>
-                    )
-                )
+                    );
+                }                
             }
         ],
         {
-            field: 'operational-status',
-            headerName: 'Operational Status',
-            width: minimalConfig ? undefined : 100,
-            headerAlign: 'center',
-            flex: minimalConfig ? 1 : undefined,
-            align: 'center',
-            renderCell: (params) => (
-                params.row['operational-status'] !== undefined && params.row['operational-status'] !== null ? (
-                    renderOperationalStatus(params.row['operational-status'] as OperationalStatus)
+            header: 'Operational Status',
+            accessorKey: 'operational-status',
+            enableSorting: false,
+            enableColumnActions: false,
+            muiTableHeadCellProps: () => ({
+                align: 'center' as const,
+                sx: { minWidth: '130px', Width: '130px', maxWidth: '130px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'},
+            }),
+            muiTableBodyCellProps: () => ({
+                align: 'center' as const,
+                sx: { minWidth: '130px', Width: '130px', maxWidth: '130px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'},
+            }),
+            Cell: ({ row }: any) => (
+                row.original['operational-status'] !== undefined && row.original['operational-status'] !== null ? (
+                    <Tooltip title={row.original['operational-status']}>
+                        {renderOperationalStatus(row.original['operational-status'] as OperationalStatus)}
+                    </Tooltip>
                 ) : (
                     <Typography variant="body2" textAlign='center'>
                         -
@@ -497,14 +500,23 @@ const InstanceGrid = ({ minimalConfig = false, instanceCount }: InstanceGridProp
         },
         ...minimalConfig ? [] : [
             {
-                field: 'config-status',
-                headerName: 'Config Status',
-                width: 100,
-                headerAlign: 'center',
-                align: 'center',
-                renderCell: (params: any) => (
-                    params.row['config-status'] !== undefined && params.row['config-status'] !== null ? (
-                        renderConfigStatus(params.row['config-status'] as ConfigStatus)
+                accessorKey: 'config-status',
+                header: 'Config Status',
+                enableSorting: false,
+                enableColumnActions: false,
+                muiTableHeadCellProps: () => ({
+                    align: 'center' as const,
+                    sx: { minWidth: '100px', Width: '100px', maxWidth: '100px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'},
+                }),
+                muiTableBodyCellProps: () => ({
+                    align: 'center' as const,
+                    sx: { minWidth: '100px', Width: '100px', maxWidth: '100px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'},
+                }),
+                Cell: ({ row }: any) => (
+                    row.original['config-status'] !== undefined && row.original['config-status'] !== null ? (
+                        <Tooltip title={row.original['config-status']}>
+                            {renderConfigStatus(row.original['config-status'] as ConfigStatus)}
+                        </Tooltip>
                     ) : (
                         <Typography variant="body2" textAlign='center'>
                             -
@@ -515,14 +527,20 @@ const InstanceGrid = ({ minimalConfig = false, instanceCount }: InstanceGridProp
         ],
         ...minimalConfig ? [] : [
             {
-                field: 'warnings',
-                headerName: 'Warnings',
-                width: 100,
-                headerAlign: 'center',
-                align: 'center',
-                renderCell: (params: any) => {
-                    const warning = params.row.warnings;
-
+                header: 'Warnings',
+                accessorKey: 'warnings',
+                enableSorting: false,
+                enableColumnActions: false,
+                muiTableHeadCellProps: () => ({
+                    align: 'center' as const,
+                    sx: { minWidth: '100px', Width: '100px', maxWidth: '100px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'},
+                }),
+                muiTableBodyCellProps: () => ({
+                    align: 'center' as const,
+                    sx: { minWidth: '100px', Width: '100px', maxWidth: '100px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'},
+                }),
+                Cell: ({ row }: any) => {
+                    const warning = row.original.warnings;
                     if (warning !== undefined && warning !== null) {
                         return (
                             <Tooltip title={warning}>
@@ -545,25 +563,30 @@ const InstanceGrid = ({ minimalConfig = false, instanceCount }: InstanceGridProp
         ],
         ...minimalConfig ? [] : [
             {
-                field: 'actions',
-                headerName: '',
-                width: 150,
-                sortable: false,
-                headerAlign: 'center',
-                align: 'center',
-                renderCell: (params: any) => (
+                header: 'Actions',
+                accessorKey: 'actions',
+                enableSorting: false,
+                enableColumnActions: false,
+                muiTableHeadCellProps: () => ({
+                    align: 'center' as const,
+                    sx: { minWidth: '70px', Width: '70px', maxWidth: '70px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'},
+                }),
+                muiTableBodyCellProps: () => ({
+                    align: 'center' as const,
+                    sx: { minWidth: '70px', Width: '70px', maxWidth: '70px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'},
+                }),
+                Cell: ({ row }: any) => (
                     (
-                        params.row.actions !== undefined && params.row.actions !== null ?
+                        row.original.appiId !== undefined && row.original.appiId !== null ?
                         (
                             <DropdownButton
-                                title='Actions'
                                 options={
                                     [
                                         {
                                             label: 'Terminate',
                                             handleClick: () => {
                                                 setConfirmationDialogOpen(true);
-                                                setId(params.row.id as string);
+                                                setId(row.original.id as string);
                                             }
                                         },
                                     ] as DropdownOption[]
@@ -575,6 +598,23 @@ const InstanceGrid = ({ minimalConfig = false, instanceCount }: InstanceGridProp
             }
         ],
     ];
+
+
+    const rootData = useMemo(() => instanceData.filter((r: RowData) => !r.appiId), [instanceData, metrics]);
+    const table = useMaterialReactTable({
+        columns,
+        data: rootData,
+        getSubRows: (row: RowData) => instanceData.filter((r: RowData) => r.appiId === row.id),
+        paginateExpandedRows: false,
+
+        enableExpandAll: false, //hide expand all double arrow in column header
+        enableExpanding: true, //disable expanding rows by default (replaced by a custom expand function)
+
+        enableDensityToggle: false,
+        initialState: { density: 'compact' },
+
+        enableFullScreenToggle: false,
+    });
 
     return (
         <>
@@ -588,54 +628,7 @@ const InstanceGrid = ({ minimalConfig = false, instanceCount }: InstanceGridProp
                 </Box>
             ) : (
                 <>
-                    <DataGrid
-                        initialState={{
-                            pagination: {
-                              paginationModel: { pageSize: 10, page: 0 },
-                            },
-                          }}
-                        hideFooter={minimalConfig}
-                        getRowId={(row) => row.id}
-                        rows={rowData} // Correct filtered row list
-                        columns={columns.map((col) => ({
-                            ...col,
-                            sortable: false,  // Disable sorting for all columns
-                        }))}
-                        pagination
-                        paginationMode="server" // Important for manual pagination
-                        rowCount={rowCount} // Only count expanded rows
-                        pageSizeOptions={[5, 10, 30, 100]}
-                        onStateChange={(state) => {
-                            if (state.pagination.paginationModel.pageSize >= 0) {
-                                setPageSize(state.pagination.paginationModel.pageSize);
-                            }
-                            if (state.pagination.paginationModel.page >= 0) {
-                                setPage(state.pagination.paginationModel.page);
-                            }
-                        }}
-                        disableRowSelectionOnClick
-                        sx={{
-                            "&.MuiDataGrid-root .MuiDataGrid-cell:focus-within": {
-                                outline: "none !important",
-                            },
-                            "& .MuiDataGrid-columnHeaders": {
-                                backgroundColor: "#f5f5f5",
-                            },
-                            "& .MuiDataGrid-footerContainer": {
-                                backgroundColor: "#f5f5f5",
-                            },
-                            "& .MuiDataGrid-row": {
-                                backgroundColor: "#f5f5f5",
-                            },
-                            display: 'grid',
-                            "& .MuiDataGrid-row.expandedRow": {
-                                backgroundColor: "#f0f0f0",
-                            },
-                        }}
-                        getRowClassName={(params) =>
-                            params.row.expand ? "expandedRow" : ""
-                        }
-                    />
+                    <MaterialReactTable table={table} />
                     <DetailsDialog
                         open={detailsDialogOpen}
                         onClose={() => setDetailsDialogOpen(false)}
@@ -656,6 +649,7 @@ const InstanceGrid = ({ minimalConfig = false, instanceCount }: InstanceGridProp
             )}
         </>
     );
+
 };
 
 export default InstanceGrid;

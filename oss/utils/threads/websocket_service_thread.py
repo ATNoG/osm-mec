@@ -10,8 +10,6 @@ from cherrypy.process import plugins
 
 ws = []
 metrics_queue = queue.Queue()
-lat_queue = queue.Queue()
-
 
 class WebSocketServiceThread(plugins.SimplePlugin):
     """Background thread that sends metrics to the websockets"""
@@ -44,11 +42,8 @@ async def send_metrics():
                 if not metrics_queue.empty():
                     metrics = metrics_queue.get_nowait()
                     for websocket in ws:
+                        print(f"Sending metrics: {metrics}")
                         await websocket.send(json.dumps(metrics))
-                if not lat_queue.empty():
-                    lat = lat_queue.get()
-                    for websocket in ws:
-                        await websocket.send(json.dumps(lat))
                 await asyncio.sleep(0.1)
             except Exception as e:
                 print(f"Error in sending metrics: {e}")

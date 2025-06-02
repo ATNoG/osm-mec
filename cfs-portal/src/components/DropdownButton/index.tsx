@@ -3,7 +3,7 @@ import { Button, Menu, MenuItem } from "@mui/material";
 import { DropdownButtonProps } from "../../types/Component";
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 
-const DropdownButton = ({ title, options }: DropdownButtonProps) => {
+const DropdownButton = ({ options }: DropdownButtonProps) => {
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
     const open = Boolean(anchorEl);
 
@@ -17,15 +17,7 @@ const DropdownButton = ({ title, options }: DropdownButtonProps) => {
 
     return (
         <>
-            <Button
-                variant='contained'
-                color='primary'
-                size='small'
-                onClick={handleClick}
-                endIcon={<KeyboardArrowDownIcon />}
-            >
-                {title}
-            </Button>
+            <Button size="small" onClick={handleClick}><KeyboardArrowDownIcon /></Button>
             <Menu
                 anchorEl={anchorEl}
                 open={open && Boolean(anchorEl)}

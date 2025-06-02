@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
-import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { Card, CardContent, CardHeader, Grid, Typography } from '@mui/material';
+import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import { useNavigate } from 'react-router-dom';
 import { getAppPkg, getAppI } from '../../api/api';
 import { AppData, InstanceData } from '../../types/Component';
@@ -50,7 +50,7 @@ const Dashboard = () => {
             </Box>
             <Box>
                 <Grid container spacing={2}>
-                    <Grid item xs={6}>
+                    <Grid size={6}>
                         <Card sx={{ borderRadius: '6px', boxShadow: '6', cursor: 'pointer' }} onClick={navigateToAppCatalog}>
                             <CardHeader
                                 title={
@@ -83,7 +83,7 @@ const Dashboard = () => {
                             </CardContent>
                         </Card>
                     </Grid>
-                    <Grid item xs={6}>
+                    <Grid size={6}>
                         <Card sx={{ borderRadius: '6px', boxShadow: '6', cursor: 'pointer' }} onClick={navigateToAppInstances}>
                             <CardHeader
                                 title={

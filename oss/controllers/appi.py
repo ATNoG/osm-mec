@@ -1,7 +1,7 @@
 import cherrypy
 from utils.cherrypy_utils import is_valid_uuid
 from utils.cherrypy_utils import is_valid_id
-from utils.db import DB
+from utils.db import DB, db
 from utils.kafka import KafkaUtils
 from utils.osm import get_osm_client
 from views.appi import AppiView
@@ -36,7 +36,7 @@ class AppiController:
         """
         /mec-appis (GET)
         """
-        mec_appis = DB._list(self.collection)
+        mec_appis = DB._list(self.collection, db=db)
         for mec_appi in mec_appis:
             if '_id' in mec_appi:
                 mec_appi['_id'] = str(mec_appi['_id'])
@@ -47,10 +47,10 @@ class AppiController:
         """
         /mec-appis/{appi_id} (GET)
         """
-        if not is_valid_id(appi_id) or not DB._exists(appi_id, self.collection):
+        if not is_valid_id(appi_id) or not DB._exists(appi_id, self.collection, db=db):
             raise cherrypy.HTTPError(404, "App instance not found")
         
-        mec_appi = DB._get(appi_id, self.collection)
+        mec_appi = DB._get(appi_id, self.collection, db=db)
         if '_id' in mec_appi:
             mec_appi['_id'] = str(mec_appi['_id'])
 

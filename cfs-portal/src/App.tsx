@@ -4,10 +4,10 @@ import { NotAuthenticatedRoute, PrivateRoute } from './utils/routes'
 
 import Login from './pages/Login'
 import Test from './pages/Test'
-import Home from './pages/Home'
 import Dashboard from './pages/Dashboard'
 import AppCatalog from './pages/AppCatalog';
 import AppInstances from './pages/AppInstances';
+import Federation from './pages/Federation';
 import { Sidebar } from './components/Sidebar';
 import TopBar from './components/Topbar';
 import { SidebarProvider } from './contexts/sidebarContext';
@@ -30,14 +30,7 @@ const App = () => {
               <Box sx={{ display: 'flex' }}>
                 <TopBar />
                 <Sidebar />
-                <Box sx={{
-                  flexGrow: 1,
-                  p: 3,
-                  backgroundColor: 'rgba(0, 0, 0, 0.04)',
-                  height: '100vh',
-                  width: '100vw',
-                  boxSizing: 'border-box',
-                }}>
+                <Box sx={{ flexGrow: 1, p: 3, backgroundColor: 'rgba(0, 0, 0, 0.04)', height: '100vh', width: '100%', boxSizing: 'border-box',  overflow: 'hidden' }}>
                   <Toolbar />
                   <Outlet />
                 </Box>
@@ -49,6 +42,7 @@ const App = () => {
             <Route path='/dashboard' element={<Dashboard />} />
             <Route path='/app-catalog' element={<AppCatalog />} />
             <Route path='/app-instances' element={<AppInstances />} />
+            <Route path='/federation' element={<Federation />} />
             <Route path='*' element={<h1>Not Found</h1>} />
           </Route>
         </Routes>
