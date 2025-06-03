@@ -1,7 +1,6 @@
 from ...threads.websocket_service_thread import metrics_queue
 
 def callback(data):
-    print("Received metrics data:", data)
     data.pop("msg_id", None)  # Remove msg_id if present
 
     apps_metrics = {}
@@ -26,7 +25,6 @@ def callback(data):
         domain = cluster_data.get("domain", None)
 
         for node_name, node_data in cluster_data.get("nodeSpecs", {}).items():
-            # print("Analyzing node:", node_name)
             nodes_metrics.setdefault(f"{domain}-{cluster}-{node_name}", {
                 "domain": domain,
                 "cluster": cluster,

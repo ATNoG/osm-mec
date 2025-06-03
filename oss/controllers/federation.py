@@ -53,6 +53,7 @@ class FederationController:
         cherrypy.response.status = 201
         return {"status": "success", "message": "Federation created successfully."}
     
+    @cherrypy.tools.json_out()
     def get_federation(self, federation_id: str):
         """
         Retrieves a federation configuration by its ID.
@@ -86,6 +87,7 @@ class FederationController:
         
         /federation/{federation_id} (DELETE)
         """
+        print("Deleting federation with ID:", federation_id)
         if not DB._exists(federation_id, "federations", db=db_federation):
             cherrypy.response.status = 404
             return {"status": "error", "message": "Federation not found."}

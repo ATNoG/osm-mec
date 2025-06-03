@@ -1,13 +1,11 @@
-import { useState, useEffect, useMemo } from "react"
+import React, { forwardRef, useImperativeHandle, useState, useEffect, useMemo } from "react"
 import Box from "@mui/material/Box"
-import { Button, Tooltip, Skeleton } from "@mui/material"
-import AddCircleIcon from "@mui/icons-material/AddCircle"
+import { Tooltip, Skeleton } from "@mui/material"
 import ConfirmationDialog from "../../components/Dialog/ConfirmationDialog"
-import FormDialog from "../../components/Dialog/FormDialog"
 import DropdownButton from "../../components/DropdownButton"
-import { ActionType, FederationStatus, Item, type DropdownOption, type FormDialogField } from "../../types/Component"
+import { ActionType, FederationStatus, Item, type DropdownOption } from "../../types/Component"
 import toast from "../../utils/toast"
-import { getFederations, createFederation, deleteFederation } from "../../api/api"
+import { getFederations, deleteFederation } from "../../api/api"
 import Typography from "@mui/material/Typography";
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
@@ -30,10 +28,9 @@ const renderFederationStatus = (status: FederationStatus) => {
   }
 }
 
-const FederationGrid = () => {
+const FederationGrid = forwardRef((props, ref) => {
   const [federations, setFederations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true)
-  const [isFormDialogOpen, setIsFormDialogOpen] = useState(false)
   const [isConfirmationDialogOpen, setIsConfirmationDialogOpen] = useState(false)
   const [selectedFederationId, setSelectedFederationId] = useState("")
 
@@ -61,15 +58,9 @@ const FederationGrid = () => {
     }
   }
 
-  const handleCreateFederation = async (formData: any) => {
-    try {
-      await createFederation(formData)
-      toast.success("Federation created successfully")
-      fetchFederations()
-    } catch (error) {
-      toast.error("Error creating federation")
-    }
-  }
+  useImperativeHandle(ref, () => ({
+    fetchFederations,
+  }))
 
   const handleDeleteFederation = async () => {
     try {
@@ -86,41 +77,6 @@ const FederationGrid = () => {
     setSelectedFederationId(id)
     setIsConfirmationDialogOpen(true)
   }
-
-  const formFields: FormDialogField[] = [
-    {
-      id: "federation_endpoint",
-      label: "Federation Endpoint",
-      type: "text",
-      required: true,
-      validate: (value: string) => {
-        try {
-          new URL(value);
-          return true;
-        } catch (_) {
-          return "Please enter a valid URL.";
-        }
-      },
-    },
-    {
-      id: "authentication_endpoint",
-      label: "Authentication Endpoint",
-      type: "text",
-      required: true,
-    },
-    {
-      id: "client_id",
-      label: "Client ID",
-      type: "text",
-      required: true,
-    },
-    {
-      id: "client_secret",
-      label: "Client Secret",
-      type: "text",
-      required: true,
-    },
-  ]
 
   const columns: MRT_ColumnDef<any>[] = [
     {
@@ -225,11 +181,11 @@ const FederationGrid = () => {
       enableColumnActions: false,
       muiTableHeadCellProps: () => ({
           align: 'center' as const,
-          sx: { minWidth: '120px', Width: '120px', maxWidth: '120px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'},
+          sx: { minWidth: '140px', Width: '140px', maxWidth: '140px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'},
       }),
       muiTableBodyCellProps: () => ({
           align: 'center' as const,
-          sx: { minWidth: '120px', Width: '120px', maxWidth: '120px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'},
+          sx: { minWidth: '140px', Width: '140px', maxWidth: '140px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'},
       }),
       Cell: ({ row }: any) => {
           const rawDate = row.original['expiry_date'];
@@ -257,11 +213,11 @@ const FederationGrid = () => {
       enableColumnActions: false,
       muiTableHeadCellProps: () => ({
           align: 'center' as const,
-          sx: { minWidth: '120px', Width: '120px', maxWidth: '120px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'},
+          sx: { minWidth: '140px', Width: '140px', maxWidth: '140px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'},
       }),
       muiTableBodyCellProps: () => ({
           align: 'center' as const,
-          sx: { minWidth: '120px', Width: '120px', maxWidth: '120px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'},
+          sx: { minWidth: '140px', Width: '140px', maxWidth: '140px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'},
       }),
       Cell: ({ row }: any) => {
           const rawDate = row.original['renewal_date'];
@@ -289,11 +245,11 @@ const FederationGrid = () => {
       enableColumnActions: false,
       muiTableHeadCellProps: () => ({
         align: 'center' as const,
-        sx: { minWidth: '80px', Width: '80px', maxWidth: '80px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'},
+        sx: { minWidth: '100px', Width: '100px', maxWidth: '100px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'},
       }),
       muiTableBodyCellProps: () => ({
         align: 'center' as const,
-        sx: { minWidth: '80px', Width: '80px', maxWidth: '80px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'},
+        sx: { minWidth: '100px', Width: '100px', maxWidth: '100px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'},
       }),
       Cell: ({ row }: any) => {
         const status: FederationStatus = row.original.status ? FederationStatus.SUCCESS : FederationStatus.FAILED;
@@ -369,13 +325,6 @@ const FederationGrid = () => {
             <MaterialReactTable table={table} />
         )}
         
-        <FormDialog
-            open={isFormDialogOpen}
-            onClose={() => setIsFormDialogOpen(false)}
-            onSubmit={handleCreateFederation}
-            title="Add New Federation"
-            fields={formFields}
-        />
         <ConfirmationDialog
             open={isConfirmationDialogOpen}
             onClose={() => setIsConfirmationDialogOpen(false)}
@@ -385,6 +334,6 @@ const FederationGrid = () => {
         />
     </>
   );
-}
+});
 
 export default FederationGrid;

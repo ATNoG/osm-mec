@@ -4,7 +4,6 @@ certifi==2023.11.17
 charset-normalizer==3.3.2
 cheroot==10.0.0
 CherryPy==18.9.0
-cherrypy-cors==1.7.0
 dnspython==2.6.1
 enum34==1.1.10
 httpagentparser==1.9.5

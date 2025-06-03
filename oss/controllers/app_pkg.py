@@ -51,14 +51,12 @@ class AppPkgController:
         )
 
         try:
-            print("Sending message to Kafka")
             msg_id = KafkaUtils.send_message(
                 self.producer,
                 "new_app_pkg",
                 {"app_pkg_id": app_pkg_id},
             )
             response = KafkaUtils.wait_for_response(msg_id)
-            print("Received response:", response)
 
             cherrypy.response.status = response["status"]
             return {"id": app_pkg_id}

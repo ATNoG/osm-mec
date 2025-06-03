@@ -42,7 +42,6 @@ async def send_metrics():
                 if not metrics_queue.empty():
                     metrics = metrics_queue.get_nowait()
                     for websocket in ws:
-                        print(f"Sending metrics: {metrics}")
                         await websocket.send(json.dumps(metrics))
                 await asyncio.sleep(0.1)
             except Exception as e:
