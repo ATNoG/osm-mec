@@ -10,12 +10,14 @@ docker build -t localhost:5000/meao:latest meao/meao
 docker build -t localhost:5000/meao-monitoring:latest meao/monitoring
 docker build -t localhost:5000/meao-migration:latest meao/migration
 docker build -t localhost:5000/oss:latest oss
+docker build -t localhost:5000/forwarder:latest metrics-forwarder
 
 docker push localhost:5000/cfs-portal:latest
 docker push localhost:5000/meao:latest
 docker push localhost:5000/meao-monitoring:latest
 docker push localhost:5000/meao-migration:latest
 docker push localhost:5000/oss:latest
+docker push localhost:5000/forwarder:latest
 
 
 # Get the needed Information
@@ -36,6 +38,7 @@ helm -n osm-mec upgrade --install osm-mec deployment/helm-chart \
     --set meao.monitoring.deployment.image=localhost:5000/meao-monitoring:latest \
     --set meao.migration.deployment.image=localhost:5000/meao-migration:latest \
     --set oss.deployment.image=localhost:5000/oss:latest \
+    --set metricsForwarder.deployment.image=localhost:5000/forwarder:latest \
     --set osm.host=$OSM_NBI \
     --set cfsPortal.ossHost=$K8S_DEFAULT_IP \
     --set kafka.KAFKA_PRODUCER_CONFIG.sasl_plain_password=$KAFKA_PRODUCER_PASSWORD \

@@ -4,8 +4,6 @@ from src.utils.exceptions import handle_exceptions
 from src.utils.file_management import *
 from src.utils.osm import get_osm_client
 
-DOMAIN = "IT_AVEIRO"
-
 @handle_exceptions
 def callback(meao, message):
     appi_id = message.get("appi_id")
@@ -18,8 +16,8 @@ def callback(meao, message):
         
         network_services = get_all_ns(appi)
         released_resources = get_appi_resources(appi)
-        for domain, ns_id in sorted(network_services, key=lambda x: (x[0] != DOMAIN, x)):
-            if domain == DOMAIN:
+        for domain, ns_id in sorted(network_services, key=lambda x: (x[0] != meao.domain, x)):
+            if domain == meao.domain:
                 meao.nbi_k8s_connector.delete_network_service(ns_id, wait=wait)
             # else:
             #     print(f"TODO: Cannot delete network service {ns_id} in domain {domain}. Multiple Domain deletion Not Implemented yet.")
@@ -47,7 +45,7 @@ def get_appi_resources(appi: dict):
     """
     resources = {}
     for domain in appi["instances"]:
-        if domain == DOMAIN:
+        if domain == appi["domain"]:
             for cluster in appi["instances"][domain]:
                 for kdu, node in appi["instances"][domain][cluster]["kdus"].items():
                     if kdu in appi["migration_policy"]:

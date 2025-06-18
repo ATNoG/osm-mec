@@ -4,6 +4,7 @@ from src.callbacks import load_callback_functions
 from src.utils.nbi_k8s_connector import NBIConnector
 from src.utils.kafka.kafka_utils import KafkaUtils
 from src.utils.threads.send_cluster_metrics_thread import SendClusterMetricsThread
+from src.utils.threads.send_federation_containers_thread import SendFederationContainersThread
 
 logging.basicConfig(level=logging.INFO)
 
@@ -62,7 +63,8 @@ class MEAO:
             - ue-lats: dict
                 dictionary storing latency information
     """
-    def __init__(self, nbi_k8s_connector: NBIConnector, raw_metrics_topic: str, ue_latency_kafka_topic: str, meh_metrics_topic: str, send_cluster_metrics_freq: int, kafka_consumer_conf: dict, kafka_producer_conf: dict) -> None:
+    def __init__(self, domain: str, nbi_k8s_connector: NBIConnector, raw_metrics_topic: str, ue_latency_kafka_topic: str, meh_metrics_topic: str, send_cluster_metrics_freq: int, kafka_consumer_conf: dict, kafka_producer_conf: dict) -> None:
+        self.domain = domain
         # NBI Connector
         self.nbi_k8s_connector = nbi_k8s_connector
 
@@ -86,7 +88,9 @@ class MEAO:
         # Initialize the dictionaries
         self.node_specs = {}
         self.appis = {}
+        self.federation_appis = {}  # App_id: "instances" -> {}
         self.container_to_app = {}
+        self.federation_container_to_app = {}
         self.current_metrics = {}
         self.prev_cpu = {}
 
@@ -112,6 +116,8 @@ class MEAO:
         # Create threads
         # read_ue_latency = threading.Thread(target=self.read_ue_latency)
         SendClusterMetricsThread(self.producer, self.appis, self.current_metrics, self.container_to_app, self.node_specs, self.meh_metrics_topic, self.send_cluster_metrics_freq).start()
+        SendFederationContainersThread(self.producer, self.federation_container_to_app, "federation-containers", self.send_cluster_metrics_freq).start()
+        # SendContainerToAppThread(self.producer, self.container_to_app, "container_to_app", self.send_cluster_metrics_freq).start()
     
         try:
             for response in KafkaUtils.consume_messages(self.consumer, self, self.callbacks, max_workers=10):

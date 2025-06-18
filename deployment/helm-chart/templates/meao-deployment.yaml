@@ -24,6 +24,8 @@ spec:
           ports:
             {{ .Values.meao.deployment.ports | toYaml | nindent 12 }}
           env:
+            - name: DOMAIN
+              value: '{{ .Values.domain }}'
             - name: KAFKA_PRODUCER_CONFIG
               value: '{{ .Values.kafka.KAFKA_PRODUCER_CONFIG | toJson }}'
             - name: KAFKA_CONSUMER_CONFIG
@@ -48,6 +50,8 @@ spec:
           ports:
             {{ .Values.meao.monitoring.deployment.ports | toYaml | nindent 12 }}
           env:
+            - name: DOMAIN
+              value: '{{ .Values.domain }}'
             - name: OSM_HOSTNAME
               value: '{{ .Values.osm.host }}'
             - name: KAFKA_PRODUCER_CONFIG
@@ -79,6 +83,8 @@ spec:
           ports:
             {{ .Values.meao.migration.deployment.ports | toYaml | nindent 12 }}
           env:
+            - name: DOMAIN
+              value: '{{ .Values.domain }}'
             - name: OSM_HOSTNAME
               value: '{{ .Values.osm.host }}'
             - name: KAFKA_PRODUCER_CONFIG

@@ -13,6 +13,8 @@ from src.utils.nbi_k8s_connector import NBIConnector
 
 def main():
     os.makedirs(os.environ.get("KUBECTL_CONFIG_PATH"), exist_ok=True)
+    
+    domain = os.environ.get("DOMAIN", "DEFAULT_DOMAIN")
     nbi_k8s_connector = NBIConnector(
         os.environ.get("OSM_HOSTNAME"),
         os.environ.get("KUBECTL_COMMAND"),
@@ -23,7 +25,7 @@ def main():
     kafka_consumer_config = json.loads(os.environ.get("KAFKA_CONSUMER_CONFIG", '{"bootstrap_servers": "localhost:9092", "group_id": "monitoring", "auto_offset_reset": "latest"}'))
 
     DatabaseInitializer.initialize_database()
-    meao = MEAO(nbi_k8s_connector, kafka_producer_config=kafka_producer_config, kafka_consumer_config=kafka_consumer_config)
+    meao = MEAO(domain, nbi_k8s_connector, kafka_producer_config=kafka_producer_config, kafka_consumer_config=kafka_consumer_config)
 
     # Flask API
     threading.Thread(target=api.run, args=(meao,)).start()

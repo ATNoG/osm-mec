@@ -1,3 +1,5 @@
+domain: IT_AVEIRO
+
 osm:
   host: nbi.localhost.nip.io
 
@@ -138,3 +140,18 @@ mongoExpress:
     targetPort: 8081
   username: root
   password: pass
+
+metricsForwarder:
+  name: metrics-forwarder
+  enabled: true
+  sharedKubectlConfigPath: /configs/
+  deployment:
+    replicas: 1
+    image: ghcr.io/atnog/osm-mec/metrics-forwarder:main
+    imagePullPolicy: Always
+    restartPolicy: Always
+    env:
+      KAFKA_GROUP_ID: "forwarder"
+    ports:
+      - containerPort: 8000
+        protocol: TCP

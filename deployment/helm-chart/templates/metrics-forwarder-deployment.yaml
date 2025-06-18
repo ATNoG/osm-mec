@@ -1,0 +1,36 @@
+{{ if .Values.metricsForwarder.enabled -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: {{ .Values.metricsForwarder.name }}
+  name: {{ .Values.metricsForwarder.name }}
+spec:
+  replicas: {{ .Values.metricsForwarder.deployment.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.metricsForwarder.name }}
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.metricsForwarder.name }}
+    spec:
+      containers:
+        - name: {{ .Values.metricsForwarder.name }}
+          image: {{ .Values.metricsForwarder.deployment.image }}
+          imagePullPolicy: {{ .Values.metricsForwarder.deployment.imagePullPolicy }}
+          ports:
+            {{ .Values.metricsForwarder.deployment.ports | toYaml | nindent 12 }}
+          env:
+            - name: DOMAIN
+              value: '{{ .Values.domain }}'
+            - name: KAFKA_CONSUMER_CONFIG
+              value: '{{ .Values.kafka.KAFKA_CONSUMER_CONFIG | merge (dict "group_id" .Values.metricsForwarder.deployment.env.KAFKA_GROUP_ID) | toJson }}'
+            - name: MONGO_PASSWORD
+              value: '{{ .Values.mongo.password }}'
+            - name: MONGO_USER
+              value: '{{ .Values.mongo.username }}'
+      restartPolicy: {{ .Values.metricsForwarder.deployment.restartPolicy }}
+{{- end }}

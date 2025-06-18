@@ -1,41 +1,55 @@
 from flask import Flask, jsonify, request
 from src.meao import MEAO
+from src.utils.kafka.kafka_utils import KafkaUtils
 
 app = Flask(__name__)
 
-@app.route("/appis/<appi_id>/disable", methods=["POST"])
-def disable_kdu(appi_id):
-    data = request.get_json()
-
-    ns_id = "230e6007-0780-497c-9ba1-fee825c4af1a"  # TODO: For now this is manually set as I do not expect to use this endpoint in the future and is only for testing purposes
+@app.route("/disable_kdu", methods=["POST"])
+def disable_kdu():
+    # Get the data from the request
+    if request.is_json:
+        data = request.get_json(silent=True)
+    else:
+        data = request.form.to_dict()
+    
+    mec_appd_id = data.get("mec_appd_id", None)
+    kdu_id = data.get("kdu_id", None)
+    ns_id = data.get("ns_id", None)
 
     try:
-        result = meao.disable_kdu(appi_id, ns_id, data)
+        KafkaUtils.send_message(
+            producer=meao.producer,
+            topic="disable_kdu",
+            message={"mec_appd_id": mec_appd_id, "kdu_id": kdu_id, "ns_id": ns_id}
+        )
     except Exception as e:
         return jsonify({"status": 500, "error": str(e)}), 500
     
-    if "error" in result:
-        return jsonify(result), 404
+
+@app.route("/enable_kdu", methods=["POST"])
+def enable_kdu():
+    # Get the data from the request
+    if request.is_json:
+        data = request.get_json(silent=True)
     else:
-        return jsonify(result), 200
-
-@app.route("/appis/<appi_id>/enable", methods=["POST"])
-def enable_kdu(appi_id):
-    data = request.get_json()
-
-    ns_id = "230e6007-0780-497c-9ba1-fee825c4af1a"  # TODO: For now this is manually set as I do not expect to use this endpoint in the future and is only for testing purposes
+        data = request.form.to_dict()
+    
+    mec_appd_id = data.get("mec_appd_id", None)
+    artifact_id = data.get("kdu_id", None)
+    ns_id = data.get("ns_id", None)
+    node = data.get("node", None)
 
     try:
-        result = meao.enable_kdu(appi_id, data)
+        KafkaUtils.send_message(
+            producer=meao.producer,
+            topic="enable_kdu",
+            message={"mec_appd_id": mec_appd_id, "kdu_id": artifact_id, "ns_id": ns_id, "node": node}
+        )
     except Exception as e:
         return jsonify({"status": 500, "error": str(e)}), 500
     
-    if "error" in result:
-        return jsonify(result), 404
-    else:
-        return jsonify(result), 200
 
-@app.route("/appis/<appi_id>/artifacts/<artifact_id>/migrate/", methods=["POST"])
+@app.route("/appis/<appi_id>/artifacts/<artifact_id>/migrate", methods=["POST"])
 def migrate_container(appi_id, artifact_id):
     try:
         

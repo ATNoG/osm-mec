@@ -1,17 +1,12 @@
 import hashlib
 import json
-import logging
 import orjson
 import os
 import subprocess
 import yaml
 import requests
-import warnings
-import time
 from osmclient import client
-from osmclient.common.exceptions import ClientException, OsmHttpException
-
-DOMAIN = "IT_AVEIRO"
+import time
 
 class NBIConnector:
     """
@@ -56,6 +51,46 @@ class NBIConnector:
         with open(path, "w", buffering=1_048_576) as file:
             yaml.dump(credentials, file)
     
+    def disable_kdu(self, mec_appd_id: str, ns_id: str, kdus_id: list):
+        # Request data
+        vnf_index = str(mec_appd_id + "-vnf")
+        data = {
+            "scaleType": "SCALE_KDU",
+            "timeout_ns_scale": 1000,
+            "scaleKduData": {
+                "scaleKduType": "DISABLE",
+                "member-vnf-index": vnf_index,
+                "kdus-name": kdus_id,
+            }
+        }
+        return self.ns_scale(ns_id, data)
+
+    def enable_kdu(self, mec_appd_id: str, ns_id: str, kdus_id: list, node: str):   
+        # Request data
+        vnf_index = str(mec_appd_id + "-vnf")
+        data = {
+            "scaleType": "SCALE_KDU",
+            "timeout_ns_scale": 1000,
+            "scaleKduData": {
+                "scaleKduType": "ENABLE",
+                "member-vnf-index": vnf_index,
+                "kdus-name": kdus_id,
+                "node-selector": {
+                    "kubernetes.io/hostname": node
+                }
+            }
+        }
+        return self.ns_scale(ns_id, data)
+
+    def wait_for_kdu_enable(self, ns_id: str, kdu_id: str):
+        # I tested with a complex and long to instantiate application and the loop was only breaking when every pod was running as each container was in running state so I do not need to make code to check the status of each pod individually using the kubernetes api (OSM only updates is database when everything is running)
+        while True:
+            ns_instance = self.callNBI(self.nbi_client.ns.get, ns_id)
+            kdu_instance = next(kdu for kdu in ns_instance["_admin"]["deployed"]["K8s"] if kdu["kdu-name"] == kdu_id)
+            if kdu_instance["enable"] and kdu_instance["operation"] == "install" and kdu_instance["status"] == "Install complete":
+                break
+            time.sleep(0.01)  # Sleep for 0.01 seconds to avoid busy waiting
+        
     
     def getNodeSpecs(self, cluster_id):
         """

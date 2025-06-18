@@ -4,12 +4,11 @@ from src.utils.nbi_k8s_connector import NBIConnector
 from src.utils.kafka.kafka_utils import KafkaUtils
 from src.utils.db import DB
 
-DOMAIN = "IT_AVEIRO"    # TODO: Change to a configurable value
-
 class InfrastructureInfoThread:
     """Background thread that consumes messages from Kafka"""
 
-    def __init__(self, producer, nbi_k8s_connector: NBIConnector, infrastructure_info: dict, sleep_time: int = 10):
+    def __init__(self, domain, producer, nbi_k8s_connector: NBIConnector, infrastructure_info: dict, sleep_time: int = 10):
+        self.domain = domain
         self.producer = producer
         self.nbi_k8s_connector = nbi_k8s_connector
         self.infrastructure_info = infrastructure_info
@@ -41,7 +40,7 @@ class InfrastructureInfoThread:
             # Get each node in the cluster
             for cluster in clusters:
                 self.infrastructure_info[cluster["_id"]] = {
-                    "domain": DOMAIN,
+                    "domain": self.domain,
                     "name": cluster["name"],
                     "k8s-version": cluster["k8s_version"],
                     "vim-account": cluster["vim_account"],

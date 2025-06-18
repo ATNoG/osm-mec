@@ -5,8 +5,6 @@ from src.utils.osm import get_osm_client
 from src.utils.capture_io import CaptureIO
 import time
 
-DOMAIN = "IT_AVEIRO"
-
 @handle_exceptions
 def callback(meao, message):
     # Get the data from the message
@@ -63,7 +61,7 @@ def callback(meao, message):
     }
 
     # Select a strategy to migrate the kdu instance
-    if domain != DOMAIN:
+    if domain != meao.domain:
         return {"status": 400, "error": "Federation Needed. Not Implemented yet."}
     elif kdu_instance["cluster"] != cluster:
         DB._general_update_by("resources", {"cluster": cluster, "node": node}, {"$inc": kdu_resources})
@@ -76,7 +74,7 @@ def callback(meao, message):
         return {"status": 200, "message": "KDU {} is already running in the desired location.".format(kdu_id)}
     
     # Remove the resources from the old node if it was in the domain
-    if kdu_instance["domain"] == DOMAIN:
+    if kdu_instance["domain"] == meao.domain:
         DB._general_update_by("resources", {"cluster": kdu_instance["cluster"], "node": kdu_instance["node"]}, {"$inc": {k: -v for k, v in kdu_resources.items()}})
 
     DB._update(appis[appi_id]["_id"], "appis", {'details': "Migrated with success", f"kdus.{kdu_id}.status": "running"})
@@ -87,10 +85,10 @@ def migrate_cluster(meao, mec_appd, appi, kdu_id, domain, cluster, node):
     # Check if the new cluster already has a running network service
     if appi.get("instances", {}).get(domain, {}).get(cluster, None): # There is already a Network service in the cluster, I need to enable the kdu there
         new_ns_id = appi["instances"][domain][cluster]["ns_id"]
-        enable_kdu(meao, mec_appd, new_ns_id, [kdu_id], node)
+        meao.nbi_k8s_connector.enable_kdu(mec_appd["appd_id"], new_ns_id, [kdu_id], node)
 
         # wait for the new kdu to be running
-        wait_for_kdu_enable(meao, new_ns_id, kdu_id)
+        meao.nbi_k8s_connector.wait_for_kdu_enable(new_ns_id, kdu_id)
 
     else: # There is no network service in the cluster, create a new one
         config = appi.get("config", {})
@@ -123,7 +121,7 @@ def migrate_cluster(meao, mec_appd, appi, kdu_id, domain, cluster, node):
 
     # Disable the old kdu
     old_instance = next(({"domain": _domain, "cluster": _cluster, "ns_id": appi["instances"][_domain][_cluster]["ns_id"]} for _domain in appi["instances"] for _cluster in appi["instances"][_domain] for _kdu in appi["instances"][_domain][_cluster]["kdus"] if _kdu == kdu_id), None)
-    disable_kdu(meao, mec_appd, old_instance["ns_id"], [kdu_id])
+    meao.nbi_k8s_connector.disable_kdu(mec_appd["appd_id"], old_instance["ns_id"], [kdu_id])
     
     # Change the appi instance to the new cluster and delete the old one if empty
     appi["instances"][domain][cluster]["kdus"][kdu_id] = node
@@ -164,16 +162,6 @@ def migrate_node(meao, mec_app, appi, kdu_id, domain, cluster, node):
     appi["instances"][domain][cluster]["kdus"][kdu_id] = node
     DB._update(appi["_id"], "appis", {"instances": appi["instances"]})
 
-
-def wait_for_kdu_enable(meao, ns_id: str, kdu_id: str):
-    # I tested with a complex and long to instantiate application and the loop was only breaking when every pod was running as each container was in running state so I do not need to make code to check the status of each pod individually using the kubernetes api (OSM only updates is database when everything is running)
-    while True:
-        ns_instance = meao.nbi_k8s_connector.callNBI(meao.nbi_k8s_connector.nbi_client.ns.get, ns_id)
-        kdu_instance = next(kdu for kdu in ns_instance["_admin"]["deployed"]["K8s"] if kdu["kdu-name"] == kdu_id)
-        if kdu_instance["enable"] and kdu_instance["operation"] == "install" and kdu_instance["status"] == "Install complete":
-            break
-        time.sleep(0.01)  # Sleep for 0.01 seconds to avoid busy waiting
-
 def wait_for_kdu_node(meao, ns_id: str, kdu_id: str, node: str):
     # Here OSM is updating the database after the updated helm chart is fully running (even though the old one might still not have been fully deleted). The problem here is when to inform the new node to the client?
     while True:
@@ -182,38 +170,6 @@ def wait_for_kdu_node(meao, ns_id: str, kdu_id: str, node: str):
         if kdu_instance["enable"] and kdu_instance["operation"] == "upgrade" and kdu_instance["status"] == "Upgrade complete" and kdu_instance["node-selector"]["kubernetes.io/hostname"] == node:
             break
         time.sleep(0.01)  # Sleep for 0.01 seconds to avoid busy waiting
-        
-
-def disable_kdu(meao, mec_app: dict, ns_id: str, kdus_id: list):
-    # Request data
-    vnf_index = str(mec_app["appd_id"] + "-vnf")
-    data = {
-        "scaleType": "SCALE_KDU",
-        "timeout_ns_scale": 1000,
-        "scaleKduData": {
-            "scaleKduType": "DISABLE",
-            "member-vnf-index": vnf_index,
-            "kdus-name": kdus_id,
-        }
-    }
-    return meao.nbi_k8s_connector.ns_scale(ns_id, data)
-
-def enable_kdu(meao, mec_app: dict, ns_id: str, kdus_id: list, node: str):   
-    # Request data
-    vnf_index = str(mec_app["appd_id"] + "-vnf")
-    data = {
-        "scaleType": "SCALE_KDU",
-        "timeout_ns_scale": 1000,
-        "scaleKduData": {
-            "scaleKduType": "ENABLE",
-            "member-vnf-index": vnf_index,
-            "kdus-name": kdus_id,
-            "node-selector": {
-                "kubernetes.io/hostname": node
-            }
-        }
-    }
-    return meao.nbi_k8s_connector.ns_scale(ns_id, data)
 
 def dict_to_yaml_string(data: dict) -> str:
     """

@@ -86,9 +86,11 @@ class MEAO:
                         used for determining migration based on latency information
     """
 
-    def __init__(self, nbi_k8s_connector: NBIConnector, raw_metrics_topic: str, ue_latency_kafka_topic: str, meh_metrics_topic: str, send_container_info_freq: int, kafka_consumer_conf: dict, kafka_producer_conf: dict) -> None:
-        # Configs
+    def __init__(self, domain, nbi_k8s_connector: NBIConnector, raw_metrics_topic: str, ue_latency_kafka_topic: str, meh_metrics_topic: str, send_container_info_freq: int, kafka_consumer_conf: dict, kafka_producer_conf: dict) -> None:
+        self.domain = domain
         self.nbi_k8s_connector = nbi_k8s_connector
+
+        # Configs
         self.raw_metrics_topic = raw_metrics_topic
         self.ue_latency_kafka_topic = ue_latency_kafka_topic
         self.meh_metrics_topic = meh_metrics_topic

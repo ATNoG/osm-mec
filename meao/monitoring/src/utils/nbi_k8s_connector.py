@@ -8,8 +8,6 @@ import time
 from osmclient import client
 from osmclient.common.exceptions import ClientException, OsmHttpException
 
-DOMAIN = "IT_AVEIRO"
-
 class NBIConnector:
     """
     This class provides functions for simplifying interactions with OSM's NBI and the Kubernetes API
@@ -28,7 +26,8 @@ class NBIConnector:
         instance of OSM Client to be used to communicate with OSM's NBI
     """
 
-    def __init__(self, osm_hostname, kubectl_command, kubectl_config_path) -> None:
+    def __init__(self, domain, osm_hostname, kubectl_command, kubectl_config_path) -> None:
+        self.domain = domain
         self.osm_hostname = osm_hostname
         self.nbi_client = client.Client(host=self.osm_hostname, port=9999,sol005=True)
         self.kubectl_command = kubectl_command
@@ -118,8 +117,8 @@ class NBIConnector:
 
         # iterate through each application instance
         for appi in appis.values():
-            for domain, clusters in sorted(appi.get('instances', {}).items(), key=lambda x: (x[0] != DOMAIN, x)):
-                if domain == DOMAIN:
+            for domain, clusters in sorted(appi.get('instances', {}).items(), key=lambda x: (x[0] != self.domain, x)):
+                if domain == self.domain:
                     # Metrics from apps running in the same domain (TODO: still need to check how I am going to implement applications from other domains into this)
                     for cluster_id, cluster in clusters.items():
                         for kdu, node in cluster["kdus"].items():
@@ -167,6 +166,67 @@ class NBIConnector:
 
         # TODO: Important: There is a way of getting the ip of the container running the app pod["hostIP"]
         return container_to_app, app_metrics
+
+    def get_federation_container_info(self, appis=None):
+        """
+        Interacts with both OSM's NBI and the Kubernetes API to get information relating to the every OSM-deployed container
+
+        Parameters
+        ----------
+        nodeSpecs : dict
+            dictionary storing information relating to the cluster's nodes
+        appis : dict
+            MEC Application Instances information received from the OSS
+        """
+        container_to_app = {}
+
+        # iterate through each application instance
+        for appi_id, appi in appis.items():
+            domain = appi.get('domain', None)
+            # Metrics from apps running in the same domain (TODO: still need to check how I am going to implement applications from other domains into this)
+            for cluster_id, cluster in appi.get('instances', {}).items():
+                for kdu, node in cluster["kdus"].items():
+                    command = (
+                        "{} --kubeconfig={} get pods -A -l osm.etsi.org/ns-id={} -l osm.etsi.org/kdu-name={} -o=json".format(
+                            self.kubectl_command,
+                            os.path.join(self.kubectl_config_path, cluster_id),
+                            cluster["ns_id"],
+                            kdu,
+                        )
+                    )
+
+                    try:
+                        # Execute the kubectl command and capture the output
+                        k8s_info = json.loads(subprocess.check_output(command.split()))
+                    except subprocess.CalledProcessError as e:
+                        # Handle any errors if the command fails
+                        print("Error executing kubectl command:", e)
+                        continue
+                        
+                    for pod in k8s_info["items"]:
+                        if (
+                            ("deletionGracePeriodSeconds" in pod["metadata"] and "deletionTimestamp" in pod["metadata"]) 
+                            or "nodeName" not in pod["spec"] 
+                            or "containerStatuses" not in pod["status"]
+                        ):
+                            continue
+
+                        # iterate through each container
+                        containers = pod["status"]["containerStatuses"]
+                        for container in containers:
+                            if "containerID" in container:
+                                # # store the container's information in the containerInfo dictionary associated to its ID
+                                container_to_app[container["containerID"].strip('"').split('/')[-1]] = {
+                                    "domain": domain,
+                                    "cluster_id": cluster_id,
+                                    "appi_id": appi_id,
+                                    "kdu": kdu,
+                                    "pod": pod["metadata"]["name"],
+                                    "name": container['name'],
+                                    "node": node,
+                                }
+
+        return container_to_app
 
     def getContainerInfo(self, nodeSpecs, mec_apps=None):
         """

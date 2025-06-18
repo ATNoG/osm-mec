@@ -12,8 +12,6 @@ import random
 import yaml
 import copy
 
-DOMAIN = "IT_AVEIRO"    # TODO: Change to a configurable value
-
 @handle_exceptions
 def callback(meao, message):
     app_pkg_id = message.get("app_pkg_id")
@@ -61,7 +59,7 @@ def callback(meao, message):
 
         # Launch each network service in each cluster going firstly to the domain of this MEAO
         instances = {}
-        for domain, clusters in sorted(needed_instances.items(), key=lambda x: (x != DOMAIN, x)):
+        for domain, clusters in sorted(needed_instances.items(), key=lambda x: (x != meao.domain, x)):
             for cluster, _kdus in clusters.items():
                 # Use the default config as base
                 cluster_config = copy.deepcopy(config)
@@ -119,11 +117,11 @@ def callback(meao, message):
                 "operational-status": "init",
                 "config-status": "init",  
                 "details": "",
-                "domain": DOMAIN,
+                "domain": meao.domain,
                 "created-at": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
             }
         )
-        threading.Thread(target=check_appi_instantiation, args=({"_id": db_id, "appi_id": appi_id, "kdus": kdus, "instances": instances},)).start()
+        threading.Thread(target=check_appi_instantiation, args=({"_id": db_id, "appi_id": appi_id, "kdus": kdus, "instances": instances, "domain": meao.domain},)).start()
 
         return {"status": 201, "appi_id": appi_id}
 
@@ -260,7 +258,7 @@ def check_appi_instantiation(appi: dict):
     while True:
         clusters_to_remove = []
         for index, cluster in enumerate(clusters):
-            if cluster[0] != DOMAIN:
+            if cluster[0] != appi["domain"]:
                 # Not implemented yet. It needs federation
                 continue
 

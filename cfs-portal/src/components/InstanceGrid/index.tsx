@@ -112,6 +112,11 @@ const InstanceGrid = ({ minimalConfig = false, instanceCount }: InstanceGridProp
             }
 
             for (const [kduKey, kduValue] of Object.entries(appi.kdus as Record<string, any>)){
+                // Skip if the KDU is not enabled
+                if (!kduValue.enable) {
+                    continue; 
+                }
+                
                 // Add each container as a sub-row
                 formattedData.push({
                     id: kduKey,
@@ -577,7 +582,7 @@ const InstanceGrid = ({ minimalConfig = false, instanceCount }: InstanceGridProp
                 }),
                 Cell: ({ row }: any) => (
                     (
-                        row.original.appiId !== undefined && row.original.appiId !== null ?
+                        row.original.appiId === null ?
                         (
                             <DropdownButton
                                 options={

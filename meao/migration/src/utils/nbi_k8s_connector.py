@@ -26,7 +26,8 @@ class NBIConnector:
         instance of OSM Client to be used to communicate with OSM's NBI
     """
 
-    def __init__(self, osm_hostname, kubectl_command, kubectl_config_path) -> None:
+    def __init__(self, domain, osm_hostname, kubectl_command, kubectl_config_path) -> None:
+        self.domain = domain
         self.osm_hostname = osm_hostname
         self.nbi_client = client.Client(host=self.osm_hostname, port=9999,sol005=True)
         self.kubectl_command = kubectl_command

@@ -12,7 +12,8 @@ from src.utils.db import DB
 logging.basicConfig(level=logging.INFO)
 
 class MEAO:
-    def __init__(self, nbi_k8s_connector, kafka_producer_config, kafka_consumer_config):
+    def __init__(self, domain, nbi_k8s_connector, kafka_producer_config, kafka_consumer_config):
+        self.domain = domain
         self.nbi_k8s_connector = nbi_k8s_connector
 
         self.kafka_producer_config = kafka_producer_config
@@ -45,7 +46,7 @@ class MEAO:
         logging.info(f"Listening for messages on topics: {self.topics}")
 
         MECAppsInstancesThread(self.producer, self.mec_apps, self.appis).start()
-        InfrastructureInfoThread(self.producer, self.nbi_k8s_connector, self.infrastructure_info).start()
+        InfrastructureInfoThread(self.domain, self.producer, self.nbi_k8s_connector, self.infrastructure_info).start()
 
         try:
             for response in KafkaUtils.consume_messages(self.consumer, self, self.callbacks, max_workers=10):
