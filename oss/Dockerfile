@@ -1,9 +1,13 @@
 # syntax=docker/dockerfile:1
-FROM python:3.9
+FROM python:3.10-alpine
 
 # set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+
+# Install dependencies
+RUN apk add --no-cache gcc curl musl-dev linux-headers librdkafka-dev bash
+RUN apk add --no-cache --virtual .make-deps bash make patch wget git gcc g++
 
 # install osmclient
 COPY osmclient-install.sh osmclient-install.sh
