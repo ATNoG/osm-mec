@@ -28,9 +28,15 @@ jobs:
           - dir: meao/monitoring
             dockerfile: Dockerfile
             image-name: meao-monitoring
+          - dir: meao/migration
+            dockerfile: Dockerfile
+            image-name: meao-migration
           - dir: oss
             dockerfile: Dockerfile
             image-name: oss
+          - dir: metrics-forwarder
+            dockerfile: Dockerfile
+            image-name: metrics-forwarder
           
     # Sets the permissions granted to the `GITHUB_TOKEN` for the actions in this job.
     permissions:
