@@ -94,8 +94,8 @@ class FederationController:
 
         msg_id = KafkaUtils.send_message(
             self.producer,
-            "delete_federation",
-            {"federation_id": federation_id}
+            "remove_federation",
+            {"federation_context_id": federation_id}
         )
         response = KafkaUtils.wait_for_response(msg_id)
 

@@ -22,6 +22,7 @@ def disable_kdu():
             topic="disable_kdu",
             message={"mec_appd_id": mec_appd_id, "kdu_id": kdu_id, "ns_id": ns_id}
         )
+        return jsonify({"status": 200, "message": "KDU disable request sent"}), 200
     except Exception as e:
         return jsonify({"status": 500, "error": str(e)}), 500
     
@@ -45,6 +46,7 @@ def enable_kdu():
             topic="enable_kdu",
             message={"mec_appd_id": mec_appd_id, "kdu_id": artifact_id, "ns_id": ns_id, "node": node}
         )
+        return jsonify({"status": 200, "message": "KDU enable request sent"}), 200
     except Exception as e:
         return jsonify({"status": 500, "error": str(e)}), 500
     

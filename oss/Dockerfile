@@ -7,7 +7,7 @@ ENV PYTHONUNBUFFERED=1
 
 # Install dependencies
 RUN apk add --no-cache gcc curl musl-dev linux-headers librdkafka-dev bash
-RUN apk add --no-cache --virtual .make-deps bash make patch wget git gcc g++
+RUN apk add --no-cache --virtual .make-deps bash make patch wget git gcc g++ libmagic
 
 # install osmclient
 COPY osmclient-install.sh osmclient-install.sh
