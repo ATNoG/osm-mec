@@ -286,7 +286,7 @@ const FederationGrid = forwardRef((props, ref) => {
             [
               {
                 label: "Delete",
-                handleClick: () => openConfirmationDialog(row.original.id),
+                handleClick: () => openConfirmationDialog(row.original.federation_context_id),
               },
             ] as DropdownOption[]
           }

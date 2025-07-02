@@ -42,3 +42,7 @@ class DB:
     @staticmethod
     def _exists(id, collection, db=db):
         return db[collection].find_one({"_id": ObjectId(id)}) is not None
+    
+    @staticmethod
+    def _exists_by(collection, filter, db=db):
+        return db[collection].find_one(filter) is not None

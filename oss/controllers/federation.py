@@ -16,6 +16,7 @@ class FederationController:
         Initializes the FederationController with Kafka producer configuration.
         :param kafka_producer_config: Configuration for the Kafka producer.
         """
+        
         self.producer = KafkaUtils.create_producer(kafka_producer_config)
 
     @cherrypy.tools.json_out()
@@ -54,18 +55,19 @@ class FederationController:
         return {"status": "success", "message": "Federation created successfully."}
     
     @cherrypy.tools.json_out()
-    def get_federation(self, federation_id: str):
+    def get_federation(self, federation_context_id: str):
         """
         Retrieves a federation configuration by its ID.
-        :param federation_id: The ID of the federation to retrieve.
+        :param federation_context_id: The ID of the federation to retrieve.
         
-        /federation/{federation_id} (GET)
+        /federations/{federation_context_id} (GET)
         """
-        if not DB._exists(federation_id, "federations", db=db_federation):
+
+        if not DB._exists(federation_context_id, "federations", db=db_federation):
             cherrypy.response.status = 404
             return {"status": "error", "message": "Federation not found."}
 
-        federation = DB._get(federation_id, "federations", db=db_federation)
+        federation = DB._get(federation_context_id, "federations", db=db_federation)
         return FederationView._get(federation)
 
     @cherrypy.tools.json_out()
@@ -73,29 +75,29 @@ class FederationController:
         """
         Lists all federations.
         
-        /federation/ (GET)
+        /federations/ (GET)
         """
 
         federations = DB._list("federations", db=db_federation)
         return [FederationView._list(federation) for federation in federations]
     
     @cherrypy.tools.json_out()
-    def delete_federation(self, federation_id: str):
+    def delete_federation(self, federation_context_id: str):
         """
         Deletes a federation configuration.
-        :param federation_id: The ID of the federation to delete.
+        :param federation_context_id: The ID of the federation to delete.
         
-        /federation/{federation_id} (DELETE)
+        /federation/{federation_context_id} (DELETE)
         """
-        print("Deleting federation with ID:", federation_id)
-        if not DB._exists(federation_id, "federations", db=db_federation):
+
+        if not DB._exists_by("federations", {"partnerOP.federationContextId": federation_context_id}, db=db_federation):
             cherrypy.response.status = 404
             return {"status": "error", "message": "Federation not found."}
 
         msg_id = KafkaUtils.send_message(
             self.producer,
             "remove_federation",
-            {"federation_context_id": federation_id}
+            {"federation_context_id": federation_context_id}
         )
         response = KafkaUtils.wait_for_response(msg_id)
 
@@ -103,7 +105,7 @@ class FederationController:
             cherrypy.response.status = response["status"]
             return {"status": "error", "message": response.get("message", "Failed to delete federation.")}
 
-        DB._delete(federation_id, "federations", db=db_federation)
+        DB._delete(federation_context_id, "federations", db=db_federation)
         cherrypy.response.status = 200
         return {"status": "success", "message": "Federation deleted successfully."}
     

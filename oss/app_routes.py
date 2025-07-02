@@ -90,7 +90,7 @@ endpoints = {
         ),
         (
             "get_federation",
-            "/federations/{federation_id}",
+            "/federations/{federation_context_id}",
             "FederationController",
             "GET",
         ),
@@ -102,7 +102,7 @@ endpoints = {
         ),
         (
             "delete_federation",
-            "/federations/{federation_id}",
+            "/federations/{federation_context_id}",
             "FederationController",
             "DELETE",
         ),

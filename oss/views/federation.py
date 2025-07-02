@@ -16,6 +16,7 @@ class FederationView:
             "initial_date": date_to_str(data.get("originOP").get("initialDate")),
             "expiry_date": date_to_str(data.get("partnerOP").get("federationExpiryDate")),
             "renewal_date": date_to_str(data.get("partnerOP").get("federationRenewalDate")),
+            "federation_context_id": data.get("partnerOP").get("federationContextId"),
             "status": data.get("status"),
         }
 
