@@ -2,7 +2,7 @@ import threading
 import time
 from src.utils.nbi_k8s_connector import NBIConnector
 from src.utils.kafka.kafka_utils import KafkaUtils
-from src.utils.db import DB
+from src.utils.db import DB, db_federation
 
 class InfrastructureInfoThread:
     """Background thread that consumes messages from Kafka"""
@@ -29,7 +29,6 @@ class InfrastructureInfoThread:
         """Background worker thread"""
         while True:
             # Get the clusters from the own infrastructure
-            self.infrastructure_info.clear()
             clusters = self.nbi_k8s_connector.get_clusters()
             
             # If we cannot get the clusters, wait and retry
@@ -38,8 +37,9 @@ class InfrastructureInfoThread:
                 continue
 
             # Get each node in the cluster
+            infrastructure_info = {}
             for cluster in clusters:
-                self.infrastructure_info[cluster["_id"]] = {
+                infrastructure_info[cluster["_id"]] = {
                     "domain": self.domain,
                     "name": cluster["name"],
                     "k8s-version": cluster["k8s_version"],
@@ -69,7 +69,10 @@ class InfrastructureInfoThread:
                         nodeSpecs[node]["allocated-cpu"] = current_allocated_resources["allocated-cpu"]
                         nodeSpecs[node]["allocated-mem"] = current_allocated_resources["allocated-mem"]
                         
-                self.infrastructure_info[cluster["_id"]]["nodeSpecs"] = nodeSpecs
+                infrastructure_info[cluster["_id"]]["nodeSpecs"] = nodeSpecs
+            
+            self.infrastructure_info.clear()
+            self.infrastructure_info.update(infrastructure_info)
 
             # Publish the infrastructure information to Kafka
             KafkaUtils.send_message(

@@ -16,18 +16,18 @@ class FederationsInfoThread:
         # ======================================================================================
         self.partners_config = {
             "IT_AVEIRO": {
-                "bootstrap_servers": "10.255.41.143:31999",
+                "bootstrap_servers": "10.255.41.50:31999",
                 "security_protocol": "SASL_PLAINTEXT",
                 "sasl_mechanism": "PLAIN",
                 "sasl_plain_username": "user1",
-                "sasl_plain_password": "K5nT4EAnhx"
+                "sasl_plain_password": "0eW6RwqFoC"
             },
-            "TEST_DOMAIN": {
-                "bootstrap_servers": "10.255.41.81:31999",
+            "PARTNER": {
+                "bootstrap_servers": "10.255.41.35:31999",
                 "security_protocol": "SASL_PLAINTEXT",
                 "sasl_mechanism": "PLAIN",
                 "sasl_plain_username": "user1",
-                "sasl_plain_password": "nczChFRDn6"
+                "sasl_plain_password": "Ahc4mYsSv7"
             },
         }
         # ======================================================================================
@@ -48,29 +48,13 @@ class FederationsInfoThread:
             federations = DB._list("federations", db=db_federation)
             current_partners = set()
 
-            # TODO: The following code is purely a temporary solution to keep the work before integrating with the actual federation management system.
-            # ======================================================================================
+            # Create the producers for the current federations
             for federation in federations:
-                if federation.get("originOP", {}).get("origOPFederationId") == "federation-12345":
-                    federation["originOP"]["origOPFederationId"] = "IT_AVEIRO"
-                else:
-                    federation["originOP"]["origOPFederationId"] = "TEST_DOMAIN"
-                
-                if federation.get("partnerOP", {}).get("partnerOPFederationId") == "federation-12345":
-                    federation["partnerOP"]["partnerOPFederationId"] = "IT_AVEIRO"
-                else:
-                    federation["partnerOP"]["partnerOPFederationId"] = "TEST_DOMAIN"
-            # ======================================================================================
-
-            # Get credentials for the federation somehow
-            for federation in federations:
-                if federation.get("originOP", {}).get("origOPFederationId") == self.domain:
-                    federation_partner = federation.get("partnerOP", {}).get("partnerOPFederationId")
+                if federation.get("partnerOP", {}).get("partnerOPFederationId") == self.domain:
+                    federation_partner = federation.get("originOP", {}).get("origOPFederationId")
                     current_partners.add(federation_partner)
-                    if federation_partner not in self.producers:
+                    if federation_partner not in self.producers and federation_partner in self.partners_config:
                         # Create a producer for this federation
-                        print("Creating producer for federation partner:", federation_partner)
-                        print("Using config:", self.partners_config.get(federation_partner, {}))
                         producer = KafkaUtils.create_producer(
                             config=self.partners_config.get(federation_partner, {}),
                         )
@@ -82,6 +66,4 @@ class FederationsInfoThread:
                     self.producers[partner].close()  # Properly close the Kafka producer
                     del self.producers[partner]
 
-            print("Current Federations:", federations)
-            print("Current Producers:", self.producers)
             time.sleep(self.sleep_time)

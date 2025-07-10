@@ -54,7 +54,7 @@ class NBIConnector:
             pods = json.loads(subprocess.check_output(command.split()))['items']
         except subprocess.CalledProcessError as e:
             # handle any errors if the command fails
-            print("Error executing kubectl command:", e)
+            print("Error executing kubectl command at get_pod_status:", e)
         pod_status = {pod['metadata']['name']: pod['status']['phase'] for pod in pods}
         return pod_status
     
@@ -136,7 +136,7 @@ class NBIConnector:
                                 k8s_info = json.loads(subprocess.check_output(command.split()))
                             except subprocess.CalledProcessError as e:
                                 # Handle any errors if the command fails
-                                print("Error executing kubectl command:", e)
+                                print("Error executing kubectl command at get_container_info:", e)
                                 continue
                                 
                             for pod in k8s_info["items"]:
@@ -200,7 +200,7 @@ class NBIConnector:
                         k8s_info = json.loads(subprocess.check_output(command.split()))
                     except subprocess.CalledProcessError as e:
                         # Handle any errors if the command fails
-                        print("Error executing kubectl command:", e)
+                        print("Error executing kubectl command at get_federation_container_info:", e)
                         continue
                         
                     for pod in k8s_info["items"]:
@@ -293,7 +293,7 @@ class NBIConnector:
                 k8s_info = json.loads(subprocess.check_output(command.split()))
             except subprocess.CalledProcessError as e:
                 # Handle any errors if the command fails
-                print("Error executing kubectl command:", e)
+                print("Error executing kubectl command at getContainerInfo:", e)
                 return containerInfo
 
             # iterate through each kdu instance

@@ -11,7 +11,7 @@ def handle_exceptions(f):
             return {
                 "msg_id": args[1].get("msg_id"),
                 "status": 500,
-                "error": "MEAO: " + str(e),
+                "error": "Metrics Forwarder: " + str(e),
             }
 
     return wrapper

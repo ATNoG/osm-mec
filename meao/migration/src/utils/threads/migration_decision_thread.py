@@ -28,23 +28,13 @@ class MigrationDecisionThread:
             try:
                 for appi_id in list(self.meao.appis):
                     for kdu_id, migration_policy in self.meao.appis[appi_id]["migration_policy"].items():
-                        print("===========================")
-                        print("Checking appi", appi_id, "kdu", kdu_id, "migration policy: ", migration_policy)
-
-                        print("Migrating Apps:", self.meao.migrating_apps)
-                        print("Expected Resource Gains:", self.meao.expected_resource_gains)
-                        print("Possible Migrations: ", self.meao.possible_migrations)
 
                         # Check if the appi is already migrating
                         if (appi_id, kdu_id) in self.meao.migrating_apps:
-                            print("Appi already migrating")
                             continue
-
-                        print("Checking the need for migration")
                         
                         kdu_current_node = next({"domain": domain, "cluster": cluster, "node": node} for domain in self.meao.appis[appi_id]["instances"] for cluster in self.meao.appis[appi_id]["instances"][domain] for kdu, node in self.meao.appis[appi_id]["instances"][domain][cluster]["kdus"].items() if kdu == kdu_id)
                         kdu_current_metrics = self.meao.current_metrics.get(appi_id, {}).get(kdu_id, {}).get("metrics", None)
-                        print("KDU current Metrics: ", kdu_current_metrics)
 
                         # Check the need for migration based on the resources migration policy
                         resource_migration_need = False
@@ -62,12 +52,10 @@ class MigrationDecisionThread:
                         ):
                             latency_migration_need = self.check_latency_migration_need(kdu_id, migration_policy, kdu_current_node)
 
-                        print("Do I need to migrate due to the resources? ", resource_migration_need)
-                        print("Do I need to migrate due to the latency? ", latency_migration_need)
-
                         # If all of the migration policies are satisfied, then I do not need to migrate
                         if not resource_migration_need and not latency_migration_need:
                             continue
+                        print("I need to migrate the appi {} kdu {}".format(appi_id, kdu_id))
 
                         # Find a node that can fulfill all migration policy
                         min_resource_nodes = self.min_resource_nodes(migration_policy)
@@ -104,10 +92,11 @@ class MigrationDecisionThread:
         """
         min_resource_nodes = {}
 
-        for cluster in self.meao.nodeSpecs:
-            for node, node_specs in self.meao.nodeSpecs[cluster]["nodeSpecs"].items():
+        available_infrastructure = {**meao.nodeSpecs, **meao.federation_meh_metrics}
+        for cluster in available_infrastructure:
+            for node, node_specs in available_infrastructure[cluster]["nodeSpecs"].items():
                 if "available-cpu" in node_specs and "available-mem" in node_specs and node_specs["available-cpu"] > (migration_policy["cpu-criteria"]["allocated-cpu"] + migration_policy["cpu-criteria"].get("cpu-surge-capacity", 0)) and node_specs["available-mem"] > (migration_policy["mem-criteria"]["allocated-mem"] + migration_policy["mem-criteria"].get("mem-surge-capacity", 0)):
-                    min_resource_nodes[(self.meao.nodeSpecs[cluster]["domain"], cluster, node)] = {
+                    min_resource_nodes[(available_infrastructure[cluster]["domain"], cluster, node)] = {
                         "available-cpu": node_specs["available-cpu"],
                         "available-mem": node_specs["available-mem"],
                         "available-cpu-load": round((node_specs["available-cpu"] / node_specs["num_cpu_cores"]) * 100, 2),

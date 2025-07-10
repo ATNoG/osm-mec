@@ -111,6 +111,7 @@ class MEAO:
         self.appis = {}
         self.current_metrics = {}
         self.nodeSpecs = {}
+        self.federation_meh_metrics = {}
 
         # Logic tracking
         self.possible_migrations = {}

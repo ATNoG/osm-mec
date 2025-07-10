@@ -3,6 +3,7 @@ from src.utils.db import DB
 from src.utils.exceptions import handle_exceptions
 from src.utils.osm import get_osm_client
 from src.utils.capture_io import CaptureIO
+from src.utils.kafka.kafka_utils import KafkaUtils
 import time
 
 @handle_exceptions
@@ -21,7 +22,7 @@ def callback(meao, message):
     # Get the mec_apps, appis and node specs from the database
     mec_apps = meao.get_mec_apps()
     appis = meao.get_mec_apps_instances()
-    node_specs = meao.get_infrastructure_info()
+    node_specs = {**meao.get_infrastructure_info(), **meao.federation_infrastructure_info}
 
     # Check if the data is valid
     if appi_id not in appis:
@@ -44,6 +45,9 @@ def callback(meao, message):
 
     if node not in node_specs[cluster].get("nodeSpecs", None):
         return {"status": 404, "error": "Node {} not found".format(node)}
+    
+    if domain != meao.domain and domain not in meao.federations_context_id:
+        return {"status": 404, "error": "Domain {} not found in federations".format(domain)}
 
     # Check if the kdu instance exists and where it is running
     kdu_instance = next(({"domain": _domain, "cluster": _cluster, "node": appis[appi_id]["instances"][_domain][_cluster]["kdus"][_kdu], "kdu": _kdu} for _domain in appis[appi_id]["instances"] for _cluster in appis[appi_id]["instances"][_domain] for _kdu in appis[appi_id]["instances"][_domain][_cluster]["kdus"] if _kdu == kdu_id), None)
@@ -61,17 +65,20 @@ def callback(meao, message):
     }
 
     # Select a strategy to migrate the kdu instance
-    if domain != meao.domain:
-        return {"status": 400, "error": "Federation Needed. Not Implemented yet."}
-    elif kdu_instance["cluster"] != cluster:
-        DB._general_update_by("resources", {"cluster": cluster, "node": node}, {"$inc": kdu_resources})
-        migrate_cluster(meao, mec_apps[appis[appi_id]["app_pkg_id"]], appis[appi_id], kdu_id, domain, cluster, node)
+    if kdu_instance["domain"] != domain or kdu_instance["cluster"] != cluster:
+        error = migrate_cluster(meao, mec_apps[appis[appi_id]["app_pkg_id"]], appis[appi_id], kdu_id, domain, cluster, node)
     elif kdu_instance["node"] != node:
-        DB._general_update_by("resources", {"cluster": cluster, "node": node}, {"$inc": kdu_resources})
-        migrate_node(meao, mec_apps[appis[appi_id]["app_pkg_id"]], appis[appi_id], kdu_id, domain, cluster, node)
+        error = migrate_node(meao, mec_apps[appis[appi_id]["app_pkg_id"]], appis[appi_id], kdu_id, domain, cluster, node)
     else:
         DB._update(appis[appi_id]["_id"], "appis", {'details': "Migration Completed", f"kdus.{kdu_id}.status": "running"})
         return {"status": 200, "message": "KDU {} is already running in the desired location.".format(kdu_id)}
+    
+    # If the migration was not successful, return
+    if error: return error
+    
+    # Update the resources in the database for the new node
+    if domain == meao.domain:
+        DB._general_update_by("resources", {"cluster": cluster, "node": node}, {"$inc": kdu_resources})
     
     # Remove the resources from the old node if it was in the domain
     if kdu_instance["domain"] == meao.domain:
@@ -84,57 +91,14 @@ def callback(meao, message):
 def migrate_cluster(meao, mec_appd, appi, kdu_id, domain, cluster, node):
     # Check if the new cluster already has a running network service
     if appi.get("instances", {}).get(domain, {}).get(cluster, None): # There is already a Network service in the cluster, I need to enable the kdu there
-        new_ns_id = appi["instances"][domain][cluster]["ns_id"]
-        meao.nbi_k8s_connector.enable_kdu(mec_appd["appd_id"], new_ns_id, [kdu_id], node)
-
-        # wait for the new kdu to be running
-        meao.nbi_k8s_connector.wait_for_kdu_enable(new_ns_id, kdu_id)
-
+        error = enable_new_kdu(meao, domain, cluster, node, mec_appd, appi, kdu_id)
+        if error: return error
     else: # There is no network service in the cluster, create a new one
-        config = appi.get("config", {})
-
-        # Create a custom config for the new cluster with only the kdu to be migrated
-        for vnf in config.get("additionalParamsForVnf", []):
-            for kdu in vnf.get("additionalParamsForKdu", []):
-                kdu_name = kdu.get("kdu_name")
-                if kdu_name == kdu_id:
-                    kdu["enable"] = True
-                    kdu["node-selector"] = {"kubernetes.io/hostname": node}
-                else:
-                    kdu["enable"] = False
-                    kdu.pop("node-selector", None)
-        
-        # Instantiate and wait for the new network service to be fully running
-        with CaptureIO() as out:
-            get_osm_client().ns.create(
-                nsd_name=appi.get("ns_pkg_id"),
-                nsr_name=appi.get("name"),
-                account=meao.infrastructure_info[cluster]["vim-account"],
-                description=appi.get("description"),
-                config=dict_to_yaml_string(config),
-                wait=True,
-            )
-        instance_id = out[0]
-        vnf_id = get_osm_client().vnf.list(ns=instance_id)[0]["_id"]
-
-        appi["instances"].setdefault(domain, {}).setdefault(cluster, {"ns_id": instance_id, "vnf_id": vnf_id, "kdus": {}})
-
+        error = new_network_service(meao, domain, cluster, node, appi, kdu_id)
+        if error: return error
+    
     # Disable the old kdu
-    old_instance = next(({"domain": _domain, "cluster": _cluster, "ns_id": appi["instances"][_domain][_cluster]["ns_id"]} for _domain in appi["instances"] for _cluster in appi["instances"][_domain] for _kdu in appi["instances"][_domain][_cluster]["kdus"] if _kdu == kdu_id), None)
-    meao.nbi_k8s_connector.disable_kdu(mec_appd["appd_id"], old_instance["ns_id"], [kdu_id])
-    
-    # Change the appi instance to the new cluster and delete the old one if empty
-    appi["instances"][domain][cluster]["kdus"][kdu_id] = node
-    appi["instances"][old_instance["domain"]][old_instance["cluster"]]["kdus"].pop(kdu_id, None)
-
-    # If there are no more kdu instances running in the old cluster, delete the network service and remove it from the appi
-    if not appi["instances"][old_instance["domain"]][old_instance["cluster"]]["kdus"]:
-        meao.nbi_k8s_connector.delete_network_service(old_instance["ns_id"])
-        appi["instances"][old_instance["domain"]].pop(old_instance["cluster"], None)
-    
-    # If there are no more clusters in the old domain, remove the domain from the appi
-    if not appi["instances"][old_instance["domain"]]:
-        appi["instances"].pop(old_instance["domain"], None)
+    disable_old_kdu(meao, domain, cluster, node, mec_appd, appi, kdu_id)
     
     # Update the appi in the database to reflect the changes
     DB._update(appi["_id"], "appis", {"instances": appi["instances"]})
@@ -145,18 +109,37 @@ def migrate_node(meao, mec_app, appi, kdu_id, domain, cluster, node):
     ns_id = appi["instances"][domain][cluster]["ns_id"]
     vnf_id = appi["instances"][domain][cluster]["vnf_id"]
 
-    # Get the kdu instance of the kdu_id from the ns instance
-    ns_instance = meao.nbi_k8s_connector.callNBI(meao.nbi_k8s_connector.nbi_client.ns.get, ns_id)
-    kdu_instance_index, kdu_instance = next((index, kdu) for index, kdu in enumerate(ns_instance["_admin"]["deployed"]["K8s"]) if kdu["kdu-name"] == kdu_id and kdu["member-vnf-index"] == str(mec_app["appd_id"] + "-vnf"))
+    if domain == meao.domain:
+        # Get the kdu instance of the kdu_id from the ns instance
+        ns_instance = meao.nbi_k8s_connector.callNBI(meao.nbi_k8s_connector.nbi_client.ns.get, ns_id)
+        kdu_instance_index, kdu_instance = next((index, kdu) for index, kdu in enumerate(ns_instance["_admin"]["deployed"]["K8s"]) if kdu["kdu-name"] == kdu_id and kdu["member-vnf-index"] == str(mec_app["appd_id"] + "-vnf"))
 
-    if not kdu_instance:
-        return {"status": 404, "error": "KDU Instance {} not found".format(kdu_id)}
+        if not kdu_instance:
+            return {"status": 404, "error": "KDU Instance {} not found".format(kdu_id)}
 
-    # Migrate the kdu instance to the new node
-    meao.nbi_k8s_connector.migrate(ns_id, vnf_id, kdu_instance["kdu-instance"], kdu_instance_index, node)
+        # Migrate the kdu instance to the new node
+        meao.nbi_k8s_connector.migrate(ns_id, vnf_id, kdu_instance["kdu-instance"], kdu_instance_index, node)
 
-    # Wait for the new kdu to be running
-    wait_for_kdu_node(meao, ns_id, kdu_id, node)
+        # Wait for the new kdu to be running
+        wait_for_kdu_node(meao, ns_id, kdu_id, node)
+    else:
+        msg_id = KafkaUtils.send_message(
+            meao.producer,
+            "federation_migrate_node",
+            {
+                "federation_context_id": meao.federations_context_id.get(domain),
+                "mec_appd_id": mec_app["appd_id"],
+                "ns_id": ns_id,
+                "vnf_id": vnf_id,
+                "kdu_id": kdu_id,
+                "node": node,
+            }
+        )
+
+        # wait for the new network service to be fully running
+        response = meao.wait_for_response(msg_id)
+        if int(response["status"]) != 200:
+            return {"status": int(response["status"]), "error": response["message"]}
 
     # Change the appi instance to the new node and update the database
     appi["instances"][domain][cluster]["kdus"][kdu_id] = node
@@ -182,4 +165,142 @@ def dict_to_yaml_string(data: dict) -> str:
         raise ValueError(f"Error converting to YAML: {e}")
     except Exception as e:
         raise ValueError(f"Unexpected error: {e}")
+
+
+def new_network_service(meao, domain, cluster, node, appi, kdu_id):
+    config = appi.get("config", {})
+
+    # Create a custom config for the new cluster with only the kdu to be migrated
+    for vnf in config.get("additionalParamsForVnf", []):
+        for kdu in vnf.get("additionalParamsForKdu", []):
+            kdu_name = kdu.get("kdu_name")
+            if kdu_name == kdu_id:
+                kdu["enable"] = True
+                kdu["node-selector"] = {"kubernetes.io/hostname": node}
+            else:
+                kdu["enable"] = False
+                kdu.pop("node-selector", None)
+
+    if domain == meao.domain:
+        # Instantiate and wait for the new network service to be fully running
+        with CaptureIO() as out:
+            get_osm_client().ns.create(
+                nsd_name=appi.get("ns_pkg_id"),
+                nsr_name=appi.get("name"),
+                account=meao.infrastructure_info[cluster]["vim-account"],
+                description=appi.get("description"),
+                config=dict_to_yaml_string(config),
+                wait=True,  # Wait for the NS to be fully running
+            )
+        ns_id = out[0]
+        vnf_id = get_osm_client().vnf.list(ns=ns_id)[0]["_id"]
+    else:
+        message = {
+            "federation_context_id": meao.federations_context_id.get(domain),
+            "app_pkg_id": appi.get("app_pkg_id"),
+            "vim_id": meao.federation_infrastructure_info[cluster]["vim-account"],
+            "config": dict_to_yaml_string(config),
+        }
+
+        # Upload the needed artefact to the partner domain
+        msg_id = KafkaUtils.send_message(
+            meao.producer,
+            "federation_new_artefact",
+            message
+        )
+
+        # wait for the artifact to be uploaded to the partner domain
+        response = meao.wait_for_response(msg_id)
+        if int(response["status"]) != 200:
+            return {"status": int(response["status"]), "error": response["message"]}
+        
+        # Instantiate the new network service
+        msg_id = KafkaUtils.send_message(
+            meao.producer,
+            "federation_new_appi",
+            message
+        )
+
+        # wait for the new network service to be fully running
+        response = meao.wait_for_response(msg_id)
+        if int(response["status"]) != 201:
+            return {"status": int(response["status"]), "error": response["message"]}
+
+        federated_appi_id = response.get("app_instance_id")
+        ns_id = response["ns_id"]
+        vnf_id = response["vnf_id"]
+
+    appi["instances"].setdefault(domain, {}).setdefault(cluster, {"appi_id": federated_appi_id, "ns_id": ns_id, "vnf_id": vnf_id, "kdus": {}})
+
+def enable_new_kdu(meao, domain, cluster, node, mec_appd, appi, kdu_id):
+    new_ns_id = appi["instances"][domain][cluster]["ns_id"]
+
+    # Enable the KDU in the new domain and cluster and wait for it to be running
+    if domain == meao.domain:
+        meao.nbi_k8s_connector.enable_kdu(mec_appd["appd_id"], new_ns_id, [kdu_id], node)
+        meao.nbi_k8s_connector.wait_for_kdu_enable(new_ns_id, kdu_id)
+    else:
+        msg_id = KafkaUtils.send_message(
+            meao.producer,
+            "federation_enable_kdu",
+            {
+                "federation_context_id": meao.federations_context_id.get(domain),
+                "mec_appd_id": mec_appd["appd_id"],
+                "ns_id": new_ns_id,
+                "kdu_id": kdu_id,
+                "node": node,
+            }
+        )
+
+        # wait for the new kdu to be running
+        response = meao.wait_for_response(msg_id)
+        if int(response["status"]) != 200:
+            return {"status": int(response["status"]), "error": response["message"]}
+
+def disable_old_kdu(meao, domain, cluster, node, mec_appd, appi, kdu_id):
+    old_instance = next(({"domain": _domain, "cluster": _cluster, "appi_id": appi["instances"][_domain][_cluster].get("appi_id", None), "ns_id": appi["instances"][_domain][_cluster]["ns_id"]} for _domain in appi["instances"] for _cluster in appi["instances"][_domain] for _kdu in appi["instances"][_domain][_cluster]["kdus"] if _kdu == kdu_id), None)
+
+    if old_instance is None:
+        return {"status": 404, "error": "Old instance not found for KDU {}".format(kdu_id)}
+
+    # Change the appi instance to the new cluster and delete the old one if empty
+    appi["instances"][domain][cluster]["kdus"][kdu_id] = node
+    appi["instances"][old_instance["domain"]][old_instance["cluster"]]["kdus"].pop(kdu_id, None)
+
+    if old_instance["domain"] == meao.domain:
+        if not appi["instances"][old_instance["domain"]][old_instance["cluster"]]["kdus"]:
+            # If there are no more kdu instances running in the old cluster, delete the network service and remove it from the appi
+            appi["instances"][old_instance["domain"]].pop(old_instance["cluster"], None)
+            meao.nbi_k8s_connector.delete_network_service(old_instance["ns_id"])
+        else:
+            # Disable the old kdu in the current domain if there are more kdu instances running in the old cluster
+            meao.nbi_k8s_connector.disable_kdu(mec_appd["appd_id"], old_instance["ns_id"], [kdu_id])
+    else:
+        if not appi["instances"][old_instance["domain"]][old_instance["cluster"]]["kdus"]:
+            # If there are no more kdu instances running in the old cluster, delete the network service and remove it from the appi
+            appi["instances"][old_instance["domain"]].pop(old_instance["cluster"], None)
+
+            msg_id = KafkaUtils.send_message(
+                meao.producer,
+                "federation_remove_appi",
+                {
+                    "federation_context_id": meao.federations_context_id.get(old_instance["domain"]),
+                    "app_instance_id": old_instance["appi_id"],
+                }
+            )
+        else:
+            msg_id = KafkaUtils.send_message(
+                meao.producer,
+                "federation_disable_kdu",
+                {
+                    "federation_context_id": meao.federations_context_id.get(old_instance["domain"]),
+                    "mec_appd_id": mec_appd["appd_id"],
+                    "ns_id": old_instance["ns_id"],
+                    "kdu_id": kdu_id,
+                }
+            )
+    
+    # If there are no more clusters in the old domain, remove the domain from the appi
+    if not appi["instances"][old_instance["domain"]]:
+        appi["instances"].pop(old_instance["domain"], None)
     

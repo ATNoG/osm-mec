@@ -267,6 +267,7 @@ class NBIConnector:
                 print(f"An error occurred: {e}")
                 self.nbi_client = client.Client(host=self.osm_hostname, port=9999, sol005=True)
                 tries += 1
+                time.sleep(0.1)  # Sleep for a short time before retrying
         return None
     
     def call_nbi_api(self, url, method="GET", data=None):
@@ -293,4 +294,5 @@ class NBIConnector:
             except Exception as e:
                 self.nbi_client = client.Client(host=self.osm_hostname, port=9999,sol005=True)
                 tries += 1
+                time.sleep(0.1)  # Sleep for a short time before retrying
         return {"error": "Failed to call NBI API"}

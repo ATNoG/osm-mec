@@ -20,6 +20,7 @@ def callback(meao, message):
     description = message.get("description")
     config = yaml_string_to_dict(message.get("config", "") or "")
     wait = message.get("wait")
+    original_domain = message.get("original_domain", meao.domain)
 
     if app_pkg_id and name and description:
         app_pkg = DB._get(id=app_pkg_id, collection="app_pkgs")
@@ -82,7 +83,8 @@ def callback(meao, message):
                 cluster_config = dict_to_yaml_string(cluster_config)
 
                 with CaptureIO() as out:
-                    get_osm_client().ns.create(
+                    meao.nbi_k8s_connector.callNBI(
+                        meao.nbi_k8s_connector.nbi_client.ns.create,
                         nsd_name=ns_pkg_id,
                         nsr_name=name,
                         account=meao.infrastructure_info[cluster]["vim-account"],
@@ -90,8 +92,12 @@ def callback(meao, message):
                         config=cluster_config,
                         wait=wait,
                     )
+
                 instance_id = out[0]
-                vnf_id = get_osm_client().vnf.list(ns=instance_id)[0]["_id"]
+                vnf_id = meao.nbi_k8s_connector.callNBI(
+                    meao.nbi_k8s_connector.nbi_client.vnf.list,
+                    ns=instance_id
+                )[0]["_id"]
 
                 for kdu_name in ns_kdus:
                     instances.setdefault(domain, {}).setdefault(cluster, {"ns_id": instance_id, "vnf_id": vnf_id, "kdus": {}})
@@ -117,11 +123,16 @@ def callback(meao, message):
                 "operational-status": "init",
                 "config-status": "init",  
                 "details": "",
-                "domain": meao.domain,
+                "domain": original_domain,
                 "created-at": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
             }
         )
-        threading.Thread(target=check_appi_instantiation, args=({"_id": db_id, "appi_id": appi_id, "kdus": kdus, "instances": instances, "domain": meao.domain},)).start()
+        
+        thread = threading.Thread(target=check_appi_instantiation, args=(meao, {"_id": db_id, "appi_id": appi_id, "kdus": kdus, "instances": instances, "domain": meao.domain},))
+        thread.start()
+        
+        if original_domain != meao.domain:  # If the appi is being instantiated in a different domain, send the message to the federator
+            thread.join()
 
         return {"status": 201, "appi_id": appi_id}
 
@@ -245,7 +256,7 @@ def join_by_cluster(kdus: list, nodes: dict):
     return result
 
 
-def check_appi_instantiation(appi: dict):
+def check_appi_instantiation(meao, appi: dict):
     """
     Wait for the MEC app instantiation to finish.
     """
@@ -263,10 +274,13 @@ def check_appi_instantiation(appi: dict):
                 continue
 
             # Get the NS instance status
-            ns_instance = get_osm_client().ns.get(name=cluster[2]["ns_id"])
+            ns_instance = meao.nbi_k8s_connector.callNBI(
+                meao.nbi_k8s_connector.nbi_client.ns.get,
+                name=cluster[2]["ns_id"]
+            )
 
             # If the NS instance is not in init state, it already has a status so check if it is running or failed and update the kdus accordingly
-            if ns_instance['operational-status'] != "init" or ns_instance['config-status'] != "init":
+            if ns_instance and (ns_instance['operational-status'] != "init" or ns_instance['config-status'] != "init"):
                 clusters_to_remove.append(index)
 
                 # Update if any config status or operational status failed
