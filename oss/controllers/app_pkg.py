@@ -131,7 +131,7 @@ class AppPkgController:
             },
         )
         response = KafkaUtils.wait_for_response(msg_id)
-        instance_id = response.get("instance_id")
+        appi_id = response.get("appi_id")
 
         cherrypy.response.status = response["status"]
-        return {"id": instance_id}
+        return {"id": appi_id}
