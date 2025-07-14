@@ -163,10 +163,28 @@ def migrate_node(meao, mec_app, appi, kdu_id, domain, cluster, node):
             return {"status": 404, "error": "KDU Instance {} not found".format(kdu_id)}
 
         # Migrate the kdu instance to the new node
+        # TODO: This is for test purposes
+        # ##################################################################################################
+        try:
+            request_body = {"name": f"node-inst-init", "message": "MEAO instance Creation Init"}
+            alert_response = requests.post(f"http://10.255.41.239:8000/alert", json=request_body, timeout=5)
+            if alert_response.status_code != 200: print(f"Failed to notify application: {alert_response.status_code} - {alert_response.text}")
+        except Exception as e:
+            print(f"Failed to send request: {e}")
+        # ##################################################################################################
         meao.nbi_k8s_connector.migrate(ns_id, vnf_id, kdu_instance["kdu-instance"], kdu_instance_index, node)
 
         # Wait for the new kdu to be running
         wait_for_kdu_node(meao, ns_id, kdu_id, node)
+        # TODO: This is for test purposes
+        # ##################################################################################################
+        try:
+            request_body = {"name": f"node-inst-done", "message": "MEAO instance Creation done"}
+            alert_response = requests.post(f"http://10.255.41.239:8000/alert", json=request_body, timeout=5)
+            if alert_response.status_code != 200: print(f"Failed to notify application: {alert_response.status_code} - {alert_response.text}")
+        except Exception as e:
+            print(f"Failed to send request: {e}")
+        # ##################################################################################################
     else:
         msg_id = KafkaUtils.send_message(
             meao.producer,
@@ -185,6 +203,16 @@ def migrate_node(meao, mec_app, appi, kdu_id, domain, cluster, node):
         response = meao.wait_for_response(msg_id)
         if int(response["status"]) != 200:
             return {"status": int(response["status"]), "error": response["message"]}
+    
+    # TODO: This is for test purposes
+    # ##################################################################################################
+    try:
+        request_body = {"name": "migration-ready", "message": "MEAO Migration Ready", "value": None}
+        alert_response = requests.post(f"http://10.255.41.239:8000/alert", json=request_body, timeout=5)
+        if alert_response.status_code != 200: print(f"Failed to notify application: {alert_response.status_code} - {alert_response.text}")
+    except Exception as e:
+        print(f"Failed to send request: {e}")
+    # #################################################################################################
 
     # Change the appi instance to the new node and update the database
     appi["instances"][domain][cluster]["kdus"][kdu_id] = node
