@@ -131,7 +131,7 @@ def callback(meao, message):
         thread = threading.Thread(target=check_appi_instantiation, args=(meao, {"_id": db_id, "appi_id": appi_id, "kdus": kdus, "instances": instances, "domain": meao.domain},))
         thread.start()
         
-        if original_domain != meao.domain:  # If the appi is being instantiated in a different domain, send the message to the federator
+        if original_domain and original_domain != meao.domain:  # If the appi is being instantiated in a different domain, send the message to the federator
             thread.join()
 
         return {"status": 201, "appi_id": appi_id}

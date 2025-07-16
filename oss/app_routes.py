@@ -57,6 +57,12 @@ endpoints = {
             "GET",
         ),
         (
+            "get_appi_detailed",
+            "/appis/{appi_id}/detailed",
+            "AppiController",
+            "GET",
+        ),
+        (
             "list_mec_appis",
             "/mec-appis",
             "AppiController",

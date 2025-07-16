@@ -29,7 +29,21 @@ class AppiController:
         """
         if not is_valid_uuid(appi_id):
             raise cherrypy.HTTPError(404, "App instance not found")
-        return AppiView._get(get_osm_client().ns.get(appi_id))
+        return AppiView._get(DB._find(self.collection, {"appi_id": appi_id}, db=db))
+    
+    @cherrypy.tools.json_out()
+    def get_appi_detailed(self, appi_id):
+        """
+        /appis/{appi_id}/detailed (GET)
+        """
+        if not is_valid_uuid(appi_id):
+            raise cherrypy.HTTPError(404, "App instance not found")
+        
+        appi_data = DB._find(self.collection, {"appi_id": appi_id}, db=db)
+        if not appi_data:
+            raise cherrypy.HTTPError(404, "App instance not found")
+        
+        return AppiView._get_detailed(appi_data)
     
     @cherrypy.tools.json_out()
     def list_mec_appis(self):
