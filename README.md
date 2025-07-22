@@ -20,7 +20,13 @@
 
 </div>
 
+## Features
 
+- This MEC platform implements some of the ETSI specifications for MEC. It works with OSM, using it to orchestrate and manage MEC applications as CNFs, "translating" MEC application descriptors to the corresponding NSs and CNFs.
+- The developed MEAO allows MEC application migration, both in single-domain and federated scenarios. To achieve this, it collects metrics from the orchestrated Kubernetes clusters (where MEC Applications are installed) and triggers migration according to the necessities defined in the MEC application SLA. To achieve migration in federated scenarios, it uses the [MEC Federator developed in the ATNoG group](https://github.com/ATNoG/mec-federator/tree/main).
+
+## Publications
+- P. Pereira, P. Escaleira, D. Gomes and R. Aguiar, "Automatic Service Migration in a MEC-NFV Environment," 2024 IEEE Conference on Network Function Virtualization and Software Defined Networks (NFV-SDN), Natal, Brazil, 2024, pp. 1-7, doi: [10.1109/NFV-SDN61811.2024.10807471](https://www.doi.org/10.1109/NFV-SDN61811.2024.10807471).
 
 ## Contributors
 
