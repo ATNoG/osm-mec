@@ -4,6 +4,7 @@ from src.utils.kafka.kafka_utils import KafkaUtils
 from src.utils.exceptions import handle_exceptions
 from src.utils.file_management import *
 from src.utils.osm import get_osm_client
+import time
 
 @handle_exceptions
 def callback(meao, message):
