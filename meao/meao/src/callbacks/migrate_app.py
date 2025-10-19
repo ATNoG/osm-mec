@@ -134,10 +134,10 @@ def migrate_cluster(meao, mec_appd, appi, kdu_id, domain, cluster, node):
     if old_instance["domain"] != domain:    # If there is a domain change, warn the user equipment (UE) about the change
         if kdu_id == "mec-test-server" and old_instance.get("cluster") != cluster:
             # Warn the application that the domain has changed so it needs to update the network interface
-            print("Warning the UE  about the cluster change, so it can update the network interface...")
+            print("Warning the UE about the cluster change, so it can update the network interface...")
             try:
-                new_interface = "ens4" if cluster == "3c3c08f5-14b4-432c-b691-12531f3487b5" else "ens5"
-                requests.post(f"http://10.255.41.239:8000/switchInterface/{new_interface}", timeout=5)
+                new_mec = "mec1" if cluster == "3c3c08f5-14b4-432c-b691-12531f3487b5" else "mec2"
+                requests.post(f"http://10.255.41.239:8000/switchMEC/{new_mec}", timeout=5)
             except requests.RequestException as e:
                 print(f"Failed to notify application about interface switch: {e}")
     # ##################################################################################################
