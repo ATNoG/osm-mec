@@ -15,13 +15,7 @@ class KafkaUtils:
             value_deserializer=lambda x: json.loads(x.decode("utf-8")),
         )
         consumer.subscribe(topics=topics)
-
-        if seek_to_end:
-            # Only consume new messages
-            consumer.poll(timeout_ms=1000)
-            for tp in consumer.assignment():
-                consumer.seek_to_end(tp)
-
+        
         return consumer
     
     @staticmethod
