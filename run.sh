@@ -35,7 +35,7 @@ KAFKA_CONSUMER_PASSWORD=$(kubectl get secret -n osm kafka-user-passwords -o json
 helm -n osm-mec upgrade --install osm-mec deployment/helm-chart \
     --set domain="IT_AVEIRO" \
     --set cfsPortal.deployment.image=localhost:5000/cfs-portal:latest \
-    --set cfsPortal.enabled=false \
+    --set cfsPortal.enabled=true \
     --set meao.deployment.image=localhost:5000/meao:latest \
     --set meao.monitoring.deployment.image=localhost:5000/meao-monitoring:latest \
     --set meao.migration.deployment.image=localhost:5000/meao-migration:latest \

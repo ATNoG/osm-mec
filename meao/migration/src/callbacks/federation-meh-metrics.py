@@ -16,4 +16,4 @@ def callback(meao, message):
         meao.federation_meh_metrics.update(message.get("nodeSpecs", {}))
         
     except RuntimeError as e:
-        print("INFO: Exception while processing kafka messages: ", e)
+        logging.error(f"INFO: Exception while processing kafka messages: {e}")

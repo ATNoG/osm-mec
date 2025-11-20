@@ -22,4 +22,4 @@ def callback(meao, message):
         meao.nodeSpecs = message["nodeSpecs"]
 
     except RuntimeError as e:
-        logging.info("Exception while processing kafka messages: ", e)
+        logging.info(f"Exception while processing kafka messages: {e}")

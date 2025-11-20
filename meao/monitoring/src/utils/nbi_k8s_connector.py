@@ -5,6 +5,7 @@ import yaml
 import requests
 import warnings
 import time
+import logging
 from osmclient import client
 from osmclient.common.exceptions import ClientException, OsmHttpException
 
@@ -54,7 +55,7 @@ class NBIConnector:
             pods = json.loads(subprocess.check_output(command.split()))['items']
         except subprocess.CalledProcessError as e:
             # handle any errors if the command fails
-            print("Error executing kubectl command at get_pod_status:", e)
+            logging.error(f"Error executing kubectl command at get_pod_status: {e}")
         pod_status = {pod['metadata']['name']: pod['status']['phase'] for pod in pods}
         return pod_status
     
@@ -111,7 +112,6 @@ class NBIConnector:
             MEC Application Instances information received from the OSS
         """
 
-        # TODO: This solution only works for single domain currently. Later when I implement multi-domain, I will need to change this a bit
         container_to_app = {}
         app_metrics = {}
 
@@ -119,7 +119,6 @@ class NBIConnector:
         for appi in appis.values():
             for domain, clusters in sorted(appi.get('instances', {}).items(), key=lambda x: (x[0] != self.domain, x)):
                 if domain == self.domain:
-                    # Metrics from apps running in the same domain (TODO: still need to check how I am going to implement applications from other domains into this)
                     for cluster_id, cluster in clusters.items():
                         for kdu, node in cluster["kdus"].items():
                             command = (
@@ -136,7 +135,7 @@ class NBIConnector:
                                 k8s_info = json.loads(subprocess.check_output(command.split()))
                             except subprocess.CalledProcessError as e:
                                 # Handle any errors if the command fails
-                                print("Error executing kubectl command at get_container_info:", e)
+                                logging.error(f"Error executing kubectl command at get_container_info: {e}")
                                 continue
                                 
                             for pod in k8s_info["items"]:
@@ -155,16 +154,15 @@ class NBIConnector:
                                         container_to_app[container["containerID"].strip('"').split('/')[-1]] = {
                                             "domain": domain,
                                             "cluster_id": cluster_id,
+                                            "node": node,
                                             "appi_id": appi.get("appi_id"),
                                             "kdu": kdu,
                                             "pod": pod["metadata"]["name"],
                                             "name": container['name'],
-                                            "node": node,
                                         }
 
-                                        app_metrics.setdefault(appi.get("appi_id"), {}).setdefault(kdu, {"node": node, "pods": {}, "metrics": {}})["pods"].setdefault(pod["metadata"]["name"], {"node": node, "containers": {}, "metrics": {}})["containers"][container["containerID"].strip('"').split('/')[-1]] = {"name": container['name'], "node": node, "metrics": {}}
+                                        app_metrics.setdefault(appi.get("appi_id"), {}).setdefault(kdu, {"domain": domain, "cluster": cluster_id, "node": node, "pods": {}, "metrics": {}})["pods"].setdefault(pod["metadata"]["name"], {"containers": {}, "metrics": {}})["containers"][container["containerID"].strip('"').split('/')[-1]] = {"name": container['name'], "metrics": {}}
 
-        # TODO: Important: There is a way of getting the ip of the container running the app pod["hostIP"]
         return container_to_app, app_metrics
 
     def get_federation_container_info(self, appis=None):
@@ -178,12 +176,12 @@ class NBIConnector:
         appis : dict
             MEC Application Instances information received from the OSS
         """
+        
         container_to_app = {}
 
         # iterate through each application instance
         for appi_id, appi in appis.items():
             domain = appi.get('domain', None)
-            # Metrics from apps running in the same domain (TODO: still need to check how I am going to implement applications from other domains into this)
             for cluster_id, cluster in appi.get('instances', {}).items():
                 for kdu, node in cluster["kdus"].items():
                     command = (
@@ -200,7 +198,7 @@ class NBIConnector:
                         k8s_info = json.loads(subprocess.check_output(command.split()))
                     except subprocess.CalledProcessError as e:
                         # Handle any errors if the command fails
-                        print("Error executing kubectl command at get_federation_container_info:", e)
+                        logging.error(f"Error executing kubectl command at get_federation_container_info: {e}")
                         continue
                         
                     for pod in k8s_info["items"]:
@@ -248,13 +246,13 @@ class NBIConnector:
         containerInfo = {}
 
         if ns_instances == None:
-            print('ERROR: Error calling OSM ns_instances endpoint')
+            logging.error(f'Error: Error calling OSM ns_instances endpoint')
             return containerInfo
         elif len(ns_instances) < 1:
-            print('INFO: No deployed ns instances')
+            logging.info(f'No deployed ns instances')
             return containerInfo
         elif 'code' in ns_instances[0].keys():
-            print('ERROR: Error calling OSM ns_instances endpoint')
+            logging.error(f'Error: Error calling OSM ns_instances endpoint')
             return containerInfo
 
         # iterate through each ns instance
@@ -293,7 +291,7 @@ class NBIConnector:
                 k8s_info = json.loads(subprocess.check_output(command.split()))
             except subprocess.CalledProcessError as e:
                 # Handle any errors if the command fails
-                print("Error executing kubectl command at getContainerInfo:", e)
+                logging.error(f"Error executing kubectl command at getContainerInfo: {e}")
                 return containerInfo
 
             # iterate through each kdu instance
@@ -352,9 +350,6 @@ class NBIConnector:
         node: str
             name of the migration target node
         """
-        print("MIGRATING CONTAINER TO NODE {}".format(node))
-        print("CONTAINER ID: {}".format(cName))
-        print("NETWORK SERVICE ID: {}".format(container["ns_id"]))
         try:
             return self.callNBI(
                 self.nbi_client.ns.migrate,
@@ -370,7 +365,7 @@ class NBIConnector:
                     }
                 })
         except Exception as e:
-            print("ERROR: {}".format(e))
+            logging.error(f"Error: {e}")
 
     def getOperationState(self, op_id):
         """
@@ -384,7 +379,7 @@ class NBIConnector:
         try:
             return self.callNBI(self.nbi_client.ns.get_op, op_id)["operationState"]
         except Exception as e:
-            print("Error finding nslcmop:", e)
+            logging.error(f"Error finding nslcmop: {e}")
             return "NOT FOUND"
         
     def callNBI(self, func, *args, **kwargs):
@@ -407,9 +402,9 @@ class NBIConnector:
             try:
                 return func(*args, **kwargs)
             except (OsmHttpException) as e:
-                print(f"An error occurred: {e}")
+                logging.error(f"An error occurred: {e}")
                 self.nbi_client = client.Client(host=self.osm_hostname, port=9999,sol005=True)
                 tries += 1
             except Exception as e:
-                print(f"An error occurred: {e}")
+                logging.error(f"An error occurred: {e}")
                 return None

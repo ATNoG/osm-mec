@@ -63,7 +63,7 @@ def callback(meao, message):
                 },
             )
         except Exception as e:
-            print("Exception occurred:", e)
+            logging.error(f"Exception occurred: {e}")
         finally:
             delete_file(vnfd_file)
             delete_file(nsd_file)

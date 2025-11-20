@@ -1,6 +1,8 @@
 from src.utils.exceptions import handle_exceptions
 import threading
 import re
+from src.utils.general import bytes_to_mb
+import logging
 
 @handle_exceptions
 def callback(meao, message):
@@ -46,10 +48,10 @@ def update_meh_metrics(meao, cName, values, container=None, silent=True):
     """
     
     if container:
-        memory_size = (meao.node_specs[container["cluster_id"]]["nodeSpecs"][container["node"]]["memory_size"]*pow(1024,3))
+        memory_size = (meao.node_specs[container["cluster_id"]]["nodeSpecs"][container["node"]]["memory_size"])
         num_cpu_cores = meao.node_specs[container["cluster_id"]]["nodeSpecs"][container["node"]]["num_cpu_cores"]
     else:
-        memory_size = (meao.node_specs[cName[0]]['nodeSpecs'][cName[1]]["memory_size"]*pow(1024,3))
+        memory_size = (meao.node_specs[cName[0]]['nodeSpecs'][cName[1]]["memory_size"])
         num_cpu_cores = meao.node_specs[cName[0]]['nodeSpecs'][cName[1]]["num_cpu_cores"]
 
     # CPU load corresponds to the amount of time that was spent executing tasks over a certain time period
@@ -72,35 +74,35 @@ def update_meh_metrics(meao, cName, values, container=None, silent=True):
     # calculate the ratio of the CPU time delta over the system time delta compared to the number of cores of the node
     cpuLoad = 0
     if elapsed_time > 0.0 and cpu_usage >= 0.0:
-        cpuLoad = min(round(((cpu_usage / elapsed_time) / num_cpu_cores) * 100, 2), 100)
+        cpuLoad = min(((cpu_usage / elapsed_time) / num_cpu_cores) * 100, 100)
 
     # store the current times in the prev_cpu dictionary for future iterations of this function
     meao.prev_cpu[cName]["previousCPU"] = current_cpu
     meao.prev_cpu[cName]["previousSystem"] = timestamp
 
     # memory load corresponds to the amount of memory used compared to the total memory of the node
-    memUsage = values["container_stats"]["memory"]["working_set"]
-    memLoad = min(round((memUsage/memory_size) * 100, 2), 100)
+    memUsage = bytes_to_mb(values["container_stats"]["memory"]["working_set"])
+    memLoad = min((memUsage/memory_size) * 100, 100)
     
     if container:
-        meao.current_metrics[container["appi_id"]][container["kdu"]]["pods"][container["pod"]]["containers"][cName]["metrics"]["cpuUsage"] = min(round((cpu_usage / elapsed_time), 2), num_cpu_cores)
+        meao.current_metrics[container["appi_id"]][container["kdu"]]["pods"][container["pod"]]["containers"][cName]["metrics"]["cpuUsage"] = min((cpu_usage / elapsed_time), num_cpu_cores)
         meao.current_metrics[container["appi_id"]][container["kdu"]]["pods"][container["pod"]]["containers"][cName]["metrics"]["cpuLoad"] = cpuLoad
-        meao.current_metrics[container["appi_id"]][container["kdu"]]["pods"][container["pod"]]["containers"][cName]["metrics"]["memUsage"] = round(memUsage / (1024 * 1024), 2)
+        meao.current_metrics[container["appi_id"]][container["kdu"]]["pods"][container["pod"]]["containers"][cName]["metrics"]["memUsage"] = min(memUsage, memory_size)   
         meao.current_metrics[container["appi_id"]][container["kdu"]]["pods"][container["pod"]]["containers"][cName]["metrics"]["memLoad"] = memLoad
     else:
-        meao.node_specs[cName[0]]['nodeSpecs'][cName[1]]["cpuUsage"] = min(round((cpu_usage / elapsed_time), 2), num_cpu_cores)
+        meao.node_specs[cName[0]]['nodeSpecs'][cName[1]]["cpuUsage"] = min((cpu_usage / elapsed_time), num_cpu_cores)
         meao.node_specs[cName[0]]['nodeSpecs'][cName[1]]["cpuLoad"] = cpuLoad
-        meao.node_specs[cName[0]]['nodeSpecs'][cName[1]]["memUsage"] = round(memUsage / (1024 * 1024), 2)
+        meao.node_specs[cName[0]]['nodeSpecs'][cName[1]]["memUsage"] = min(memUsage, memory_size) 
         meao.node_specs[cName[0]]['nodeSpecs'][cName[1]]["memLoad"] = memLoad
         
     
     if not silent:
-        print("-------------------------------------------------------")
-        print("Container ID:", cName)
-        print("Machine Name:", values["machine_name"])
-        print("Timestamp:", values["timestamp"])
-        print("CPU Cores:", num_cpu_cores)
-        print("CPU Load:", cpuLoad)
-        print("Memory Size:", memory_size)
-        print("Memory Load:", memLoad)
-        print("-------------------------------------------------------")
+        logging.info(f"-------------------------------------------------------")
+        logging.info(f"Container ID: {cName}")
+        logging.info(f"Machine Name: {values['machine_name']}")
+        logging.info(f"Timestamp: {values['timestamp']}")
+        logging.info(f"CPU Cores: {num_cpu_cores}")
+        logging.info(f"CPU Load: {cpuLoad}")
+        logging.info(f"Memory Size: {memory_size}")
+        logging.info(f"Memory Load: {memLoad}")
+        logging.info(f"-------------------------------------------------------")

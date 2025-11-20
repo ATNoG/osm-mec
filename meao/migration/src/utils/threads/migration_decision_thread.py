@@ -1,5 +1,6 @@
 import threading
 import time
+import logging
 import random
 random.seed(42)
 
@@ -55,7 +56,7 @@ class MigrationDecisionThread:
                         # If all of the migration policies are satisfied, then I do not need to migrate
                         if not resource_migration_need and not latency_migration_need:
                             continue
-                        print("I need to migrate the appi {} kdu {}".format(appi_id, kdu_id))
+                        logging.info(f"I need to migrate the appi {appi_id} kdu {kdu_id}")
 
                         # Find a node that can fulfill all migration policy
                         min_resource_nodes = self.min_resource_nodes(migration_policy)
@@ -63,18 +64,18 @@ class MigrationDecisionThread:
 
                         # Intersect the nodes for each metrics to find the nodes that can fulfill all migration policy
                         possible_nodes = {node: {"resources": min_resource_nodes[node], "latency": min_latency_nodes[node]} for node in min_resource_nodes if node in min_latency_nodes}
-                        print("Possible nodes: ", possible_nodes)
+                        logging.info(f"Possible nodes: {possible_nodes}")
                         sorted_nodes = sorted(possible_nodes, key=lambda node: self.random_score_nodes(possible_nodes[node]))
 
                         # Select the best node if there are any
                         selected_node = sorted_nodes[0] if len(sorted_nodes) > 0 else None
 
                         if not selected_node:
-                            print("There are no nodes that can fulfill the migration policy, I will not migrate")
+                            logging.info(f"There are no nodes that can fulfill the migration policy, I will not migrate")
                             continue
                         
                         # Execute the migration
-                        print("I will migrate the appi {} kdu {} to node {} at cluster {} and domain {}".format(appi_id, kdu_id, selected_node[2], selected_node[1], selected_node[0]))
+                        logging.info(f"I will migrate the appi {appi_id} kdu {kdu_id} to node {selected_node[2]} at cluster {selected_node[1]} and domain {selected_node[0]}")
                         self.meao.possible_migrations.pop(kdu_id, None) # It is no longer a possible migration but an actual one
                         self.meao.migrate(appi_id, kdu_id, selected_node[0], selected_node[1], selected_node[2])
 
@@ -157,13 +158,10 @@ class MigrationDecisionThread:
 
         # Get node available resources
         if not self.meao.nodeSpecs.get(kdu_current_node["cluster"], {"nodeSpecs": {}})["nodeSpecs"].get(kdu_current_node["node"], {}).get("available-cpu", None):
-            print("Available cpu not found for node: ", kdu_current_node["node"])
+            logging.error(f"Available cpu not found for node: {kdu_current_node['node']}")
             return False
         available_node_cpu = self.meao.nodeSpecs[kdu_current_node["cluster"]]["nodeSpecs"][kdu_current_node["node"]]["available-cpu"] + self.meao.expected_resource_gains.get((kdu_current_node["domain"], kdu_current_node["cluster"], kdu_current_node["node"]), {}).get("cpu", 0)
         available_node_mem = self.meao.nodeSpecs[kdu_current_node["cluster"]]["nodeSpecs"][kdu_current_node["node"]]["available-mem"] + self.meao.expected_resource_gains.get((kdu_current_node["domain"], kdu_current_node["cluster"], kdu_current_node["node"]), {}).get("mem", 0)
-        
-        print("Available Node CPU: ", available_node_cpu)
-        print("Available Node MEM: ", available_node_mem)
 
         # Check if the node enough resources to fulfill the allocated resources
         if available_node_cpu < 0 or available_node_mem < 0:

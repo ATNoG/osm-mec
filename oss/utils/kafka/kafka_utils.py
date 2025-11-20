@@ -9,12 +9,19 @@ from .callbacks.error_handler import responses
 
 class KafkaUtils:
     @staticmethod
-    def create_consumer(config: dict = {}, topics: list = []):
+    def create_consumer(config: dict = {}, topics: list = [], seek_to_end: bool = True):
         consumer = KafkaConsumer(
             **config,
             value_deserializer=lambda x: json.loads(x.decode("utf-8")),
         )
         consumer.subscribe(topics=topics)
+
+        if seek_to_end:
+            # Only consume new messages
+            consumer.poll(timeout_ms=1000)
+            for tp in consumer.assignment():
+                consumer.seek_to_end(tp)
+
         return consumer
     
     @staticmethod

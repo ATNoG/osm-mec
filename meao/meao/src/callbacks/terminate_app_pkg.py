@@ -5,6 +5,7 @@ from src.utils.exceptions import handle_exceptions
 from src.utils.file_management import *
 from src.utils.osm import get_osm_client
 import time
+import logging
 
 @handle_exceptions
 def callback(meao, message):
@@ -36,9 +37,9 @@ def callback(meao, message):
         
         # Wait for the application to be terminated in the remote domain
         if meao.domain != appi["domain"]:
-            print("Waiting for remote app instance to be terminated...")
+            logging.info(f"Waiting for remote app instance to be terminated...")
             wait_until_terminated(meao, network_services)
-            print("Remote app instance terminated.")
+            logging.info(f"Remote app instance terminated.")
         
         DB._delete_by("appis", filter={"appi_id": appi_id})
         return {"status": 204, "msg_id": msg_id}

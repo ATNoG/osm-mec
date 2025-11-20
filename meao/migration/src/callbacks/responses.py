@@ -31,9 +31,9 @@ def callback(meao, message):
 
             # Handle the response
             if message["status"] == 200:
-                print("INFO: Migration completed successfully: ", message["message"])
+                logging.info(f"Migration completed successfully: {message['message']}")
             else:
-                print("INFO: Migration failed with error: ", message["error"])
+                logging.error(f"Migration failed with error: {message['error']}")
 
     except RuntimeError as e:
-        logging.info("Exception while processing kafka messages: ", e)
+        logging.error(f"Exception while processing kafka messages: {e}")

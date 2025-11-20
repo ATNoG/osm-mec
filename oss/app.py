@@ -1,12 +1,15 @@
 import os
 import json
 import cherrypy
+import logging
 from app_routes import set_routes
 from utils.cherrypy_utils import jsonify_error
 from utils.kafka.callbacks.error_handler import callback as error_handler
 from utils.kafka.callbacks.get_metrics import callback as get_metrics
 from utils.threads import (KafkaConsumerThread,
                            WebSocketServiceThread)
+
+logging.basicConfig(level=logging.INFO)
 
 # CORS configuration
 def cors_tool():

@@ -172,8 +172,8 @@ class MEAO:
             return False
         
         kdu_current_node = next({"domain": domain, "cluster": cluster, "node": node} for domain in self.appis[appi_id]["instances"] for cluster in self.appis[appi_id]["instances"][domain] for kdu, node in self.appis[appi_id]["instances"][domain][cluster]["kdus"].items() if kdu == kdu_id)
-        
-        print("Migrating kdu {} from appi {} to node {} at cluster {} and domain {}".format(kdu_id, appi_id, finalTargetNode, cluster_id, domain))
+
+        logging.info(f"Migrating kdu {kdu_id} from appi {appi_id} to node {finalTargetNode} at cluster {cluster_id} and domain {domain}")
 
         # Trigger a migration in the MEAO
         message = {"appi_id": appi_id, "kdu_id": kdu_id, "domain": domain, "cluster_id": cluster_id, "node": finalTargetNode}
@@ -194,6 +194,6 @@ class MEAO:
         self.migrating_apps.add((appi_id, kdu_id))
         self.waiting_responses[msg_id] = {"type": "migration", "app": (appi_id, kdu_id), "from": kdu_current_node, "to": {"domain": domain, "cluster": cluster_id, "node": finalTargetNode}, "expected_gain": {"cpu": expected_cpu_gain, "mem": expected_mem_gain}}
 
-        print("Expected gain: ", self.waiting_responses[msg_id]["expected_gain"])
+        logging.info(f"Expected gain: {self.waiting_responses[msg_id]['expected_gain']}")
 
         return True

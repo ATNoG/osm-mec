@@ -7,6 +7,8 @@ import yaml
 import requests
 from osmclient import client
 import time
+from src.utils.general import ki_to_mb
+import logging
 
 class NBIConnector:
     """
@@ -109,13 +111,13 @@ class NBIConnector:
             node_info = json.loads(subprocess.check_output(command.split()))
         except subprocess.CalledProcessError as e:
             # handle any errors if the command fails
-            print("Error executing kubectl command:", e)
+            logging.error(f"Error executing kubectl command: {e}")
             return nodeSpecs
         
         for node in node_info["items"]:
             nodeSpecs[node["metadata"]["labels"]["kubernetes.io/hostname"]] = {
                 "num_cpu_cores": round(int(node["status"]["allocatable"]["cpu"]), 2),
-                "memory_size": round(int(node["status"]["allocatable"]["memory"][:-2])/1024, 2),
+                "memory_size": round(ki_to_mb(int(node["status"]["allocatable"]["memory"][:-2])), 2),    # Convert from Ki to MB
             }
 
         command = (
@@ -129,7 +131,7 @@ class NBIConnector:
             cadvisor_pods = json.loads(subprocess.check_output(command.split()))
         except subprocess.CalledProcessError as e:
             # handle any errors if the command fails
-            print("Error executing kubectl command:", e)
+            logging.error(f"Error executing kubectl command: {e}")
             return nodeSpecs
 
         for cadvisor_pod in cadvisor_pods["items"]:
@@ -196,7 +198,7 @@ class NBIConnector:
             self.call_nbi_api(url, method="POST", data=data)
 
         except Exception as e:
-            print("ERROR: {}".format(e))
+            logging.error(f"ERROR: {e}")
     
 
     def ns_scale(self, ns_id: str, data: dict):
@@ -241,7 +243,7 @@ class NBIConnector:
         try:
             return self.callNBI(self.nbi_client.ns.get_op, op_id)["operationState"]
         except Exception as e:
-            print("Error finding nslcmop:", e)
+            logging.error(f"Error finding nslcmop: {e}")
             return "NOT FOUND"
         
     def callNBI(self, func, *args, **kwargs):
@@ -264,7 +266,7 @@ class NBIConnector:
             try:
                 return func(*args, **kwargs)
             except Exception as e:
-                print(f"An error occurred: {e}")
+                logging.error(f"An error occurred: {e}")
                 self.nbi_client = client.Client(host=self.osm_hostname, port=9999, sol005=True)
                 tries += 1
                 time.sleep(0.1)  # Sleep for a short time before retrying
