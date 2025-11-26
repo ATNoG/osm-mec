@@ -122,7 +122,7 @@ class NBIConnector:
                     for cluster_id, cluster in clusters.items():
                         for kdu, node in cluster["kdus"].items():
                             command = (
-                                "{} --kubeconfig={} get pods -A -l osm.etsi.org/ns-id={} -l osm.etsi.org/kdu-name={} -o=json".format(
+                                "{} --kubeconfig={} get pods -A -l osm.etsi.org/ns-id={},osm.etsi.org/kdu-name={} -o=json".format(
                                     self.kubectl_command,
                                     os.path.join(self.kubectl_config_path, cluster_id),
                                     cluster["ns_id"],
@@ -150,7 +150,7 @@ class NBIConnector:
                                 containers = pod["status"]["containerStatuses"]
                                 for container in containers:
                                     if "containerID" in container:
-                                        # # store the container's information in the containerInfo dictionary associated to its ID
+                                        # store the container's information in the containerInfo dictionary associated to its ID
                                         container_to_app[container["containerID"].strip('"').split('/')[-1]] = {
                                             "domain": domain,
                                             "cluster_id": cluster_id,
@@ -185,7 +185,7 @@ class NBIConnector:
             for cluster_id, cluster in appi.get('instances', {}).items():
                 for kdu, node in cluster["kdus"].items():
                     command = (
-                        "{} --kubeconfig={} get pods -A -l osm.etsi.org/ns-id={} -l osm.etsi.org/kdu-name={} -o=json".format(
+                        "{} --kubeconfig={} get pods -A -l osm.etsi.org/ns-id={},osm.etsi.org/kdu-name={} -o=json".format(
                             self.kubectl_command,
                             os.path.join(self.kubectl_config_path, cluster_id),
                             cluster["ns_id"],

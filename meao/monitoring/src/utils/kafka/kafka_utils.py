@@ -49,7 +49,7 @@ class KafkaUtils:
         def consume_and_submit():
             for message in consumer:
                 if message.topic in callbacks:
-                    logging.info(f"Received message from topic {message.topic}: {message.value}")
+                    # logging.info(f"Received message from topic {message.topic}: {message.value}")
                     callback_function = callbacks[message.topic]
                     future = executor.submit(KafkaUtils._process_message, callback_function, data, message.value)
                     future.add_done_callback(lambda fut: result_queue.put(fut.result()))

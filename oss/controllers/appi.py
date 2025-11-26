@@ -5,13 +5,14 @@ from utils.db import DB, db
 from utils.kafka import KafkaUtils
 from utils.osm import get_osm_client
 from views.appi import AppiView
-from . import kafka_producer_config, kafka_consumer_config
+from . import kafka_producer_config, kafka_consumer_config, domain
 
 
 class AppiController:
     def __init__(self):
         self.topics = ["terminate_app_pkg"]
         self.collection = "appis"
+        self.domain = domain
         self.producer = KafkaUtils.create_producer(kafka_producer_config)
         self.consumer = KafkaUtils.create_consumer(kafka_consumer_config, self.topics)
 
@@ -50,7 +51,7 @@ class AppiController:
         """
         /mec-appis (GET)
         """
-        mec_appis = DB._list(self.collection, db=db)
+        mec_appis = DB._list(self.collection, filter={"domain": self.domain}, db=db)
         for mec_appi in mec_appis:
             if '_id' in mec_appi:
                 mec_appi['_id'] = str(mec_appi['_id'])

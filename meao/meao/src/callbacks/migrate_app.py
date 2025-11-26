@@ -328,6 +328,7 @@ def new_network_service(meao, domain, cluster, node, appi, kdu_id):
         # wait for the new network service to be fully running
         response = meao.wait_for_response(msg_id)
         if int(response["status"]) != 201:
+            DB._update(appi["_id"], "appis", {'details': "Migration failed", f"kdus.{kdu_id}.status": "running"}) # TODO: Colocar isto quando um erro ocorrer a migrar no resto das funcoes
             return {"status": int(response["status"]), "error": response["message"]}
         
         # TODO: This is for test purposes

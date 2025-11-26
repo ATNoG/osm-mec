@@ -16,9 +16,9 @@ RUN curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s
 RUN chmod +x ./kubectl
 RUN mv ./kubectl /usr/local/bin
 
-# install osmclient
-COPY osmclient-install.sh osmclient-install.sh
-RUN sh osmclient-install.sh
+# Install osmclient
+RUN git clone https://osm.etsi.org/gitlab/osm/osmclient -b v17.0 /osmclient
+RUN python3 -m pip install --no-cache-dir --no-build-isolation --user /osmclient -r /osmclient/requirements.txt -r /osmclient/requirements-dev.txt
 
 # set work directory
 WORKDIR /app

@@ -7,11 +7,12 @@ from src.utils.kafka.kafka_utils import KafkaUtils
 class SendClusterMetricsThread:
     """Background thread that sends MEC Apps information"""
 
-    def __init__(self, producer, appis: dict, current_metrics: dict, container_to_app: dict, node_specs: dict, meh_metrics_topic: str, send_cluster_metrics_freq: int):
+    def __init__(self, producer, appis: dict, current_metrics: dict, federation_appis_metrics: dict, container_to_app: dict, node_specs: dict, meh_metrics_topic: str, send_cluster_metrics_freq: int):
         self.producer = producer
 
         self.appis = appis
         self.current_metrics = current_metrics
+        self.federation_appis_metrics = federation_appis_metrics
         self.container_to_app = container_to_app
         self.node_specs = node_specs
 
@@ -84,6 +85,13 @@ class SendClusterMetricsThread:
                         nodes_specs[kdu_data["cluster"]]["nodeSpecs"][kdu_data["node"]]["appis-cpuLoad"] += kdu_cpu_load
                         nodes_specs[kdu_data["cluster"]]["nodeSpecs"][kdu_data["node"]]["appis-memUsage"] += kdu_mem_usage
                         nodes_specs[kdu_data["cluster"]]["nodeSpecs"][kdu_data["node"]]["appis-memLoad"] += kdu_mem_load
+                
+
+                # Add the Federation MEH Metrics if some
+                federation_appis_metrics = copy.deepcopy(self.federation_appis_metrics)
+                for appi_id, appi in federation_appis_metrics.items():
+                    for kdu_id, kdu in appi.items():
+                        app_metrics.setdefault(appi_id, {})[kdu_id] = kdu
 
                 message = {
                     "appis": app_metrics,

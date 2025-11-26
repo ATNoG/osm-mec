@@ -84,16 +84,21 @@ def update_meh_metrics(meao, cName, values, container=None, silent=True):
     memUsage = bytes_to_mb(values["container_stats"]["memory"]["working_set"])
     memLoad = min((memUsage/memory_size) * 100, 100)
     
-    if container:
-        meao.current_metrics[container["appi_id"]][container["kdu"]]["pods"][container["pod"]]["containers"][cName]["metrics"]["cpuUsage"] = min((cpu_usage / elapsed_time), num_cpu_cores)
-        meao.current_metrics[container["appi_id"]][container["kdu"]]["pods"][container["pod"]]["containers"][cName]["metrics"]["cpuLoad"] = cpuLoad
-        meao.current_metrics[container["appi_id"]][container["kdu"]]["pods"][container["pod"]]["containers"][cName]["metrics"]["memUsage"] = min(memUsage, memory_size)   
-        meao.current_metrics[container["appi_id"]][container["kdu"]]["pods"][container["pod"]]["containers"][cName]["metrics"]["memLoad"] = memLoad
-    else:
-        meao.node_specs[cName[0]]['nodeSpecs'][cName[1]]["cpuUsage"] = min((cpu_usage / elapsed_time), num_cpu_cores)
-        meao.node_specs[cName[0]]['nodeSpecs'][cName[1]]["cpuLoad"] = cpuLoad
-        meao.node_specs[cName[0]]['nodeSpecs'][cName[1]]["memUsage"] = min(memUsage, memory_size) 
-        meao.node_specs[cName[0]]['nodeSpecs'][cName[1]]["memLoad"] = memLoad
+    try:
+        if container:
+            meao.current_metrics[container["appi_id"]][container["kdu"]]["pods"][container["pod"]]["containers"][cName]["metrics"]["cpuUsage"] = min((cpu_usage / elapsed_time), num_cpu_cores)
+            meao.current_metrics[container["appi_id"]][container["kdu"]]["pods"][container["pod"]]["containers"][cName]["metrics"]["cpuLoad"] = cpuLoad
+            meao.current_metrics[container["appi_id"]][container["kdu"]]["pods"][container["pod"]]["containers"][cName]["metrics"]["memUsage"] = min(memUsage, memory_size)   
+            meao.current_metrics[container["appi_id"]][container["kdu"]]["pods"][container["pod"]]["containers"][cName]["metrics"]["memLoad"] = memLoad
+        else:
+            meao.node_specs[cName[0]]['nodeSpecs'][cName[1]]["cpuUsage"] = min((cpu_usage / elapsed_time), num_cpu_cores)
+            meao.node_specs[cName[0]]['nodeSpecs'][cName[1]]["cpuLoad"] = cpuLoad
+            meao.node_specs[cName[0]]['nodeSpecs'][cName[1]]["memUsage"] = min(memUsage, memory_size) 
+            meao.node_specs[cName[0]]['nodeSpecs'][cName[1]]["memLoad"] = memLoad
+    except Exception as e:
+        logging.error(f"Error updating MEH metrics for container {cName}: {str(e)}")
+        logging.info(f"Current metrics: {meao.current_metrics}")
+        return
         
     
     if not silent:

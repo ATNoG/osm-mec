@@ -30,3 +30,17 @@ def updateDict(oldDict, updatedDict):
         oldDict[key] = updatedDict[key]
 
     return oldDict
+
+def updateDict2(oldDict, updatedDict):
+    for key, value in updatedDict.items():
+        if isinstance(value, dict) and isinstance(oldDict.get(key), dict):
+            updateDict(oldDict[key], value)
+        else:
+            oldDict[key] = value
+    return oldDict
+
+def bytes_to_mb(value):
+    return value / 1_000_000
+
+def ki_to_mb(ki):
+    return (ki * 1024) / 1_000_000

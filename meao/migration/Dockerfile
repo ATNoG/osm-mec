@@ -15,8 +15,8 @@ RUN mv ./kubectl /usr/local/bin
 RUN pip install --upgrade pip
 
 # Install osmclient
-RUN git clone https://osm.etsi.org/gerrit/osm/osmclient
-RUN python3 -m pip install --user /osmclient -r /osmclient/requirements.txt -r /osmclient/requirements-dev.txt
+RUN git clone https://osm.etsi.org/gitlab/osm/osmclient -b v17.0 /osmclient
+RUN python3 -m pip install --no-cache-dir --no-build-isolation --user /osmclient -r /osmclient/requirements.txt -r /osmclient/requirements-dev.txt
 
 # Copy app files
 COPY . /app

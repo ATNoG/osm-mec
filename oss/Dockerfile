@@ -9,9 +9,9 @@ ENV PYTHONUNBUFFERED=1
 RUN apk add --no-cache gcc curl musl-dev linux-headers librdkafka-dev bash
 RUN apk add --no-cache --virtual .make-deps bash make patch wget git gcc g++ libmagic
 
-# install osmclient
-COPY osmclient-install.sh osmclient-install.sh
-RUN sh osmclient-install.sh
+# Install osmclient
+RUN git clone https://osm.etsi.org/gitlab/osm/osmclient -b v17.0 /osmclient
+RUN python3 -m pip install --no-cache-dir --no-build-isolation --user /osmclient -r /osmclient/requirements.txt -r /osmclient/requirements-dev.txt
 
 # set work directory
 WORKDIR /app

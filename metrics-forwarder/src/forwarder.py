@@ -2,6 +2,7 @@ import logging
 from src.callbacks import load_callback_functions
 from src.utils.kafka.kafka_utils import KafkaUtils
 from src.utils.threads.federations_info_thread import FederationsInfoThread
+from src.utils.threads.federations_original_appi_ids_thread import FederationsOriginalAppiIdsThread
 
 logging.basicConfig(level=logging.INFO)
 
@@ -17,13 +18,14 @@ class MetricsForwarder:
         self.consumer = KafkaUtils.create_consumer(config=self.kafka_consumer_config, topics=self.topics)
         self.producers = {} # Domain: Producer
 
-        self.federation_container_to_app = {}   # Container: Domain, cluster, node, app, kdu, pod, name
-        self.federation_appis = {}  # AppInstanceId
+        self.federated_domains_appis = {}  # Domain: Appis
+        self.original_appi_ids = {}  # Local Appi ID: Original Appi ID
 
     def run(self):
         logging.info(f"Listening for messages on topics: {self.topics}")
 
         FederationsInfoThread(self.domain ,self.producers).start()
+        FederationsOriginalAppiIdsThread(self.original_appi_ids).start()
 
         try:
             for response in KafkaUtils.consume_messages(self.consumer, self, self.callbacks, max_workers=10):
