@@ -39,13 +39,13 @@ def callback(forwarder, message):
                             original_appi_id = forwarder.original_appi_ids.get(appi_id)
                             filtered_appis_metrics.setdefault(original_appi_id, {})[kdu_name] = all_appis[appi_id][kdu_name]
             
-        # Send the current metrics information to the Domain's kafka for further processing
-        message["appis"] = filtered_appis_metrics
-        KafkaUtils.send_message(
-            producer,
-            "federation-meh-metrics",
-            message
-        )
+            # Send the current metrics information to the Domain's kafka for further processing
+            message["appis"] = filtered_appis_metrics
+            KafkaUtils.send_message(
+                producer,
+                "federation-meh-metrics",
+                message
+            )
 
     except RuntimeError as e:
         logging.error("Exception while processing kafka messages: ", e)
