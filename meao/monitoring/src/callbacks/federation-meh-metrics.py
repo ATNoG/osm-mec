@@ -19,6 +19,7 @@ def callback(meao, message):
                 for instance_id, instance in domain_instances.items():
                     if instance.get("appi_id") == appi_id:
                         corrected_appis[all_appis_id] = appi
-
     updateDict(meao.federation_appis_metrics, corrected_appis)
     
+    node_specs = message.get("nodeSpecs", {})
+    updateDict(meao.federation_node_specs, node_specs)

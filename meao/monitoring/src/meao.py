@@ -87,6 +87,7 @@ class MEAO:
 
         # Initialize the dictionaries
         self.node_specs = {}
+        self.federation_node_specs = {}
         self.appis = {}
         self.federation_appis = {}  # App_id: "instances" -> {}
         self.federation_appis_metrics = {}
@@ -116,7 +117,7 @@ class MEAO:
 
         # Create threads
         # read_ue_latency = threading.Thread(target=self.read_ue_latency)
-        SendClusterMetricsThread(self.producer, self.appis, self.current_metrics, self.federation_appis_metrics, self.container_to_app, self.node_specs, self.meh_metrics_topic, self.send_cluster_metrics_freq).start()
+        SendClusterMetricsThread(self.producer, self.appis, self.current_metrics, self.federation_appis_metrics, self.container_to_app, self.node_specs, self.federation_node_specs, self.meh_metrics_topic, self.send_cluster_metrics_freq).start()
         SendFederationContainersThread(self.producer, self.federation_container_to_app, "federation-containers", self.send_cluster_metrics_freq).start()
         # SendContainerToAppThread(self.producer, self.container_to_app, "container_to_app", self.send_cluster_metrics_freq).start()
     

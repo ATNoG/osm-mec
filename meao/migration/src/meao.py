@@ -107,22 +107,16 @@ class MEAO:
         self.consumer = KafkaUtils.create_consumer(config=self.kafka_consumer_conf, topics=self.topics)
 
         # Data tracking
-        self.mec_apps = {}
+        # self.mec_apps = {}
         self.appis = {}
         self.current_metrics = {}
         self.nodeSpecs = {}
-        self.federation_meh_metrics = {}
 
         # Logic tracking
         self.possible_migrations = {}
         self.migrating_apps = set()
         self.expected_resource_gains = {}
         self.waiting_responses = {}
-
-        # Tests
-        self.log = {}
-        with open("results.csv", "w") as log_file:
-            log_file.write("Metrics Collection,Metrics Reception,Migration Decision,Target Pod Initialization,Target Pod Ready,Source Pod Termination,Migration Completion in OSM\n")
 
     def run(self):
         """

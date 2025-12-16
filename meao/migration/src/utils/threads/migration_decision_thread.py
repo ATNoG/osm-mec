@@ -6,11 +6,6 @@ random.seed(42)
 
 from src.utils.kafka.kafka_utils import KafkaUtils
 
-# only for type hints to avoid circular imports
-TYPE_CHECKING = False
-if TYPE_CHECKING:
-    from src.meao import MEAO
-
 class MigrationDecisionThread:
     """Background thread that sends MEC Apps information"""
 
@@ -29,13 +24,20 @@ class MigrationDecisionThread:
             try:
                 for appi_id in list(self.meao.appis):
                     for kdu_id, migration_policy in self.meao.appis[appi_id]["migration_policy"].items():
-
                         # Check if the appi is already migrating
                         if (appi_id, kdu_id) in self.meao.migrating_apps:
                             continue
                         
+                        # Check if the kdu is enabled or not
+                        if not self.meao.appis.get(appi_id, {}).get("kdus", {}).get(kdu_id, {}).get("enable", False):
+                            continue
+                        
                         kdu_current_node = next({"domain": domain, "cluster": cluster, "node": node} for domain in self.meao.appis[appi_id]["instances"] for cluster in self.meao.appis[appi_id]["instances"][domain] for kdu, node in self.meao.appis[appi_id]["instances"][domain][cluster]["kdus"].items() if kdu == kdu_id)
                         kdu_current_metrics = self.meao.current_metrics.get(appi_id, {}).get(kdu_id, {}).get("metrics", None)
+
+                        # Check if there are metrics to make a decision
+                        if not kdu_current_metrics:
+                            continue
 
                         # Check the need for migration based on the resources migration policy
                         resource_migration_need = False
@@ -75,9 +77,10 @@ class MigrationDecisionThread:
                             continue
                         
                         # Execute the migration
-                        logging.info(f"I will migrate the appi {appi_id} kdu {kdu_id} to node {selected_node[2]} at cluster {selected_node[1]} and domain {selected_node[0]}")
-                        self.meao.possible_migrations.pop(kdu_id, None) # It is no longer a possible migration but an actual one
-                        self.meao.migrate(appi_id, kdu_id, selected_node[0], selected_node[1], selected_node[2])
+                        logging.info(f"Migrating appi {appi_id} kdu {kdu_id} to node {selected_node[2]} at cluster {selected_node[1]} and domain {selected_node[0]}")
+                        # TODO: Execute migration
+                        # self.meao.possible_migrations.pop(kdu_id, None) # It is no longer a possible migration but an actual one
+                        # self.meao.migrate(appi_id, kdu_id, selected_node[0], selected_node[1], selected_node[2])
 
                 time.sleep(5)
             except Exception as e:
@@ -93,7 +96,7 @@ class MigrationDecisionThread:
         """
         min_resource_nodes = {}
 
-        available_infrastructure = {**meao.nodeSpecs, **meao.federation_meh_metrics}
+        available_infrastructure = self.meao.nodeSpecs
         for cluster in available_infrastructure:
             for node, node_specs in available_infrastructure[cluster]["nodeSpecs"].items():
                 if "available-cpu" in node_specs and "available-mem" in node_specs and node_specs["available-cpu"] > (migration_policy["cpu-criteria"]["allocated-cpu"] + migration_policy["cpu-criteria"].get("cpu-surge-capacity", 0)) and node_specs["available-mem"] > (migration_policy["mem-criteria"]["allocated-mem"] + migration_policy["mem-criteria"].get("mem-surge-capacity", 0)):
@@ -163,7 +166,7 @@ class MigrationDecisionThread:
         available_node_cpu = self.meao.nodeSpecs[kdu_current_node["cluster"]]["nodeSpecs"][kdu_current_node["node"]]["available-cpu"] + self.meao.expected_resource_gains.get((kdu_current_node["domain"], kdu_current_node["cluster"], kdu_current_node["node"]), {}).get("cpu", 0)
         available_node_mem = self.meao.nodeSpecs[kdu_current_node["cluster"]]["nodeSpecs"][kdu_current_node["node"]]["available-mem"] + self.meao.expected_resource_gains.get((kdu_current_node["domain"], kdu_current_node["cluster"], kdu_current_node["node"]), {}).get("mem", 0)
 
-        # Check if the node enough resources to fulfill the allocated resources
+        # Check if the node enough resources to fulfill the allocated resources (if not, something went wrong with the provisioning and migration is needed)
         if available_node_cpu < 0 or available_node_mem < 0:
             return True
 
