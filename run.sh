@@ -50,7 +50,7 @@ KAFKA_CONSUMER_PASSWORD=$(kubectl get secret -n osm kafka-user-passwords -o json
 
 
 # Install the new version of the OSM-MEC
-helm -n osm-mec upgrade --install osm-mec deployment/helm-chart \
+helm -n osm-mec upgrade --install osm-mec deployment/helm-chart --create-namespace \
     --set domain="IT_AVEIRO" \
     --set cfsPortal.deployment.image=localhost:5000/cfs-portal:latest \
     --set cfsPortal.enabled=true \
