@@ -46,7 +46,8 @@ def callback(meao, message):
         kdu_nodes = {}
         for kdu_name, kdu in kdus.items():
             if kdu.get("enable"):
-                pre_selected_node = kdu.get("node-selector", {}).get("kubernetes.io/hostname", None)
+                _pre_node_selector = kdu.get("node-selector") or {}
+                pre_selected_node = _pre_node_selector.get("kubernetes.io/hostname", None)
                 kdu_nodes[kdu_name] = select_node(infrastructure_info=meao.infrastructure_info, vim_id=vim_id, pre_selected_node=pre_selected_node)
                 if not kdu_nodes[kdu_name]:
                     return {"status": 404, "error": "No nodes available to satisfy all the requirements"}
