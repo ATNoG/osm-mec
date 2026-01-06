@@ -26,7 +26,6 @@ const Login = () => {
         password: password
       }
     ).then(res => {
-      console.log(res.data);
       navigateToDashboard();
     }).catch(err => {
       console.log(err);

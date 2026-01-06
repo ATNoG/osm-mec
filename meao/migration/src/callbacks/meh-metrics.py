@@ -15,8 +15,8 @@ def callback(meao, message):
         # Update the nodes with the available CPU and memory
         for cluster in message["nodeSpecs"]:
             for node, specs in message["nodeSpecs"][cluster]["nodeSpecs"].items():
-                available_cpu = specs["num_cpu_cores"] - specs["allocated-cpu"] - (specs.get("cpuUsage", 0) - specs.get("appis-cpuUsage", 0))
-                available_mem = specs["memory_size"] - specs["allocated-mem"] - (specs.get("memUsage", 0) - specs.get("appis-memUsage", 0))
+                available_cpu = max(0, specs["num_cpu_cores"] - max(specs["allocated-cpu"], specs.get("cpuUsage", 0)))
+                available_mem = max(0, specs["memory_size"] - max(specs["allocated-mem"], specs.get("memUsage", 0)))
                 message["nodeSpecs"][cluster]["nodeSpecs"][node]["available-cpu"] = available_cpu
                 message["nodeSpecs"][cluster]["nodeSpecs"][node]["available-mem"] = available_mem
         meao.nodeSpecs = message["nodeSpecs"]

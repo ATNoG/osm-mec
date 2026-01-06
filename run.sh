@@ -54,6 +54,7 @@ helm -n osm-mec upgrade --install osm-mec deployment/helm-chart --create-namespa
     --set domain="IT_AVEIRO" \
     --set cfsPortal.deployment.image=localhost:5000/cfs-portal:latest \
     --set cfsPortal.enabled=true \
+    --set cfsPortal.deployment.env.FEDERATION=true \
     --set meao.deployment.image=localhost:5000/meao:latest \
     --set meao.monitoring.deployment.image=localhost:5000/meao-monitoring:latest \
     --set meao.migration.deployment.image=localhost:5000/meao-migration:latest \

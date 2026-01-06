@@ -16,6 +16,7 @@ import { Box, Toolbar } from '@mui/material';
 import './App.css';
 import { ToastContainer } from 'react-toastify';
 
+const federationEnabled = process.env.REACT_APP_FEDERATION === 'true';
 const App = () => {
   return (
     <>
@@ -42,7 +43,9 @@ const App = () => {
             <Route path='/dashboard' element={<Dashboard />} />
             <Route path='/app-catalog' element={<AppCatalog />} />
             <Route path='/app-instances' element={<AppInstances />} />
-            <Route path='/federation' element={<Federation />} />
+            {federationEnabled &&
+              <Route path='/federation' element={<Federation />} />
+            }
             <Route path='*' element={<h1>Not Found</h1>} />
           </Route>
         </Routes>

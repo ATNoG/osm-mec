@@ -107,7 +107,6 @@ class MEAO:
         self.consumer = KafkaUtils.create_consumer(config=self.kafka_consumer_conf, topics=self.topics)
 
         # Data tracking
-        # self.mec_apps = {}
         self.appis = {}
         self.current_metrics = {}
         self.nodeSpecs = {}
@@ -174,11 +173,11 @@ class MEAO:
         msg_id = KafkaUtils.send_message(self.producer, "migrate_app", message)
 
         # Calculate the expected resources gain
-        expected_cpu_gain =  max(self.appis.get(appi_id, {}).get("migration_policy", {}).get(kdu_id, {}).get("cpu-criteria", {}).get("allocated-cpu", 0) - self.current_metrics.get(appi_id, {}).get(kdu_id, {}).get("metrics", {}).get("cpuUsage", 0), 0)
-        expected_mem_gain = max(self.appis.get(appi_id, {}).get("migration_policy", {}).get(kdu_id, {}).get("mem-criteria", {}).get("allocated-mem", 0) - self.current_metrics.get(appi_id, {}).get(kdu_id, {}).get("metrics", {}).get("memUsage", 0), 0)
+        expected_cpu_gain = max(self.appis.get(appi_id, {}).get("migration_policy", {}).get(kdu_id, {}).get("cpu-criteria", {}).get("allocated-cpu", 0), self.current_metrics.get(appi_id, {}).get(kdu_id, {}).get("metrics", {}).get("cpuUsage", 0))
+        expected_mem_gain = max(self.appis.get(appi_id, {}).get("migration_policy", {}).get(kdu_id, {}).get("mem-criteria", {}).get("allocated-mem", 0), self.current_metrics.get(appi_id, {}).get(kdu_id, {}).get("metrics", {}).get("memUsage", 0))
 
         # Add the expected resource gains so that the MEAO starts detecting the migration discrepancies
-        key = (domain, cluster_id, finalTargetNode)
+        key = (kdu_current_node["domain"], kdu_current_node["cluster"], kdu_current_node["node"])
         if key not in self.expected_resource_gains:
             self.expected_resource_gains[key] = {"cpu": 0, "mem": 0}
         self.expected_resource_gains[key]["cpu"] += expected_cpu_gain

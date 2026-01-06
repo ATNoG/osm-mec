@@ -22,8 +22,14 @@ const listItems = [
     { name: 'Dashboard', icon: <DashboardRoundedIcon />, path: '/dashboard' },
     { name: 'App Catalog', icon: <ViewListRoundedIcon />, path: '/app-catalog' },
     { name: 'App Instances', icon: <AccountTreeRoundedIcon />, path: '/app-instances' },
-    { name: 'Federation', icon: <Diversity2RoundedIcon />, path: '/federation' },
 ];
+
+const federationEnabled = process.env.REACT_APP_FEDERATION === 'true';
+if (federationEnabled){
+    listItems.push(
+        { name: 'Federation', icon: <Diversity2RoundedIcon />, path: '/federation' }
+    );
+}
 
 
 const StyledNavLink = styled(NavLink)(({ theme }) => ({

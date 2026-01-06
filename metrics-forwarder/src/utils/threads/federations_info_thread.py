@@ -12,7 +12,7 @@ class FederationsInfoThread:
         self.sleep_time = sleep_time
         self.t = None
 
-        # TODO: The following code is purely a temporary solution to keep the work before integrating with the actual federation management system.
+        # TODO: The following code is a temporary solution. This should come from the federation creation process.
         # ======================================================================================
         self.partners_config = {
             "IT_AVEIRO": {

@@ -63,11 +63,11 @@ class MigrationDecisionThread:
                         # Find a node that can fulfill all migration policy
                         min_resource_nodes = self.min_resource_nodes(migration_policy)
                         min_latency_nodes = self.min_latency_nodes(migration_policy)
+                        common_nodes = set(min_resource_nodes).intersection(set(min_latency_nodes))#.intersection(set(other_metric_nodes))
 
                         # Intersect the nodes for each metrics to find the nodes that can fulfill all migration policy
-                        possible_nodes = {node: {"resources": min_resource_nodes[node], "latency": min_latency_nodes[node]} for node in min_resource_nodes if node in min_latency_nodes}
-                        logging.info(f"Possible nodes: {possible_nodes}")
-                        sorted_nodes = sorted(possible_nodes, key=lambda node: self.random_score_nodes(possible_nodes[node]))
+                        possible_nodes = {node: {"resources": min_resource_nodes[node], "latency": min_latency_nodes[node]} for node in common_nodes}
+                        sorted_nodes = sorted(possible_nodes, key=lambda node: self.rank_score_nodes(possible_nodes[node]), reverse=True)
 
                         # Select the best node if there are any
                         selected_node = sorted_nodes[0] if len(sorted_nodes) > 0 else None
@@ -78,17 +78,26 @@ class MigrationDecisionThread:
                         
                         # Execute the migration
                         logging.info(f"Migrating appi {appi_id} kdu {kdu_id} to node {selected_node[2]} at cluster {selected_node[1]} and domain {selected_node[0]}")
-                        # TODO: Execute migration
-                        # self.meao.possible_migrations.pop(kdu_id, None) # It is no longer a possible migration but an actual one
-                        # self.meao.migrate(appi_id, kdu_id, selected_node[0], selected_node[1], selected_node[2])
+                        self.meao.possible_migrations.pop(kdu_id, None) # It is no longer a possible migration but an actual one
+                        self.meao.migrate(appi_id, kdu_id, selected_node[0], selected_node[1], selected_node[2])
 
                 time.sleep(5)
             except Exception as e:
                 raise e
     
-    def random_score_nodes(self, node_data):
+    def rank_score_nodes(self, node_data):
         # Score the node
-        return random.random()
+        resources = node_data['resources']
+        latency = node_data['latency']  # Currently not used in the score calculation
+
+        # Get expected available loads
+        exp_cpu_load = resources['expected-available-cpu-load']
+        exp_mem_load = resources['expected-available-mem-load']
+
+        # Simple weighted score calculation
+        score = 0.6 * exp_cpu_load + 0.4 * exp_mem_load
+
+        return score
 
     def min_resource_nodes(self, migration_policy):
         """
@@ -165,10 +174,6 @@ class MigrationDecisionThread:
             return False
         available_node_cpu = self.meao.nodeSpecs[kdu_current_node["cluster"]]["nodeSpecs"][kdu_current_node["node"]]["available-cpu"] + self.meao.expected_resource_gains.get((kdu_current_node["domain"], kdu_current_node["cluster"], kdu_current_node["node"]), {}).get("cpu", 0)
         available_node_mem = self.meao.nodeSpecs[kdu_current_node["cluster"]]["nodeSpecs"][kdu_current_node["node"]]["available-mem"] + self.meao.expected_resource_gains.get((kdu_current_node["domain"], kdu_current_node["cluster"], kdu_current_node["node"]), {}).get("mem", 0)
-
-        # Check if the node enough resources to fulfill the allocated resources (if not, something went wrong with the provisioning and migration is needed)
-        if available_node_cpu < 0 or available_node_mem < 0:
-            return True
 
         # Check if the node has enough resources to fulfill the cpu_surge_capacity
         if kdu_cpu_migration_policy.get("cpu-surge-capacity", 0) > available_node_cpu:
