@@ -56,16 +56,6 @@ def callback(meao, message):
 
     if not kdu_instance:
         return {"status": 404, "error": "KDU Instance {} not found".format(kdu_id)}
-
-    # TODO: This is for test purposes
-    # ##################################################################################################
-    try:
-        request_body = {"name": "migration-init", "message": "MEAO Migration Init", "value": None}
-        alert_response = requests.post(f"http://10.254.247.5:8000/alert", json=request_body, timeout=5)
-        if alert_response.status_code != 200: logging.error(f"Failed to notify application: {alert_response.status_code} - {alert_response.text}")
-    except Exception as e:
-        logging.error(f"Failed to send request: {e}")
-    # ##################################################################################################
     
     # update the appi kdu instance status to migrating
     DB._update(appis[appi_id]["_id"], "appis", {'details': "Migrating", f"kdus.{kdu_id}.status": "migrating"})
@@ -96,16 +86,6 @@ def callback(meao, message):
     if kdu_instance["domain"] == meao.domain:
         DB._general_update_by("resources", {"cluster": kdu_instance["cluster"], "node": kdu_instance["node"]}, {"$inc": {k: -v for k, v in kdu_resources.items()}})
 
-    # TODO: This is for test purposes
-    # ##################################################################################################
-    try:
-        request_body = {"name": "migration-done", "message": "MEAO Migration Done", "value": None}
-        alert_response = requests.post(f"http://10.254.247.5:8000/alert", json=request_body, timeout=5)
-        if alert_response.status_code != 200: logging.error(f"Failed to notify application: {alert_response.status_code} - {alert_response.text}")
-    except Exception as e:
-        logging.error(f"Failed to send request: {e}")
-    # ##################################################################################################
-
     DB._update(appis[appi_id]["_id"], "appis", {'details': "Migrated with success", f"kdus.{kdu_id}.status": "running"})
     return {"status": 200, "message": "KDU {} migrated to cluster {} at node {}.".format(kdu_id, cluster, node)}
 
@@ -118,30 +98,6 @@ def migrate_cluster(meao, mec_appd, appi, kdu_id, domain, cluster, node):
     else: # There is no network service in the cluster, create a new one
         error = new_network_service(meao, domain, cluster, node, appi, kdu_id)
         if error: return error
-
-    # TODO: This is for test purposes
-    # ##################################################################################################
-    try:
-        request_body = {"name": "migration-ready", "message": "MEAO Migration Ready", "value": None}
-        alert_response = requests.post(f"http://10.254.247.5:8000/alert", json=request_body, timeout=5)
-        if alert_response.status_code != 200: logging.error(f"Failed to notify application: {alert_response.status_code} - {alert_response.text}")
-    except Exception as e:
-        logging.error(f"Failed to send request: {e}")
-    # ##################################################################################################
-    
-    # TODO: This is for test purposes
-    # ##################################################################################################
-    old_instance = next(({"domain": _domain, "cluster": _cluster, "ns_id": appi["instances"][_domain][_cluster]["ns_id"]} for _domain in appi["instances"] for _cluster in appi["instances"][_domain] for _kdu in appi["instances"][_domain][_cluster]["kdus"] if _kdu == kdu_id), None)
-    if old_instance["domain"] != domain:    # If there is a domain change, warn the user equipment (UE) about the change
-        if kdu_id == "mec-test-server" and old_instance.get("cluster") != cluster:
-            # Warn the application that the domain has changed so it needs to update the network interface
-            logging.info(f"Warning the UE about the cluster change, so it can update the network interface...")
-            try:
-                new_mec = "mec1" if cluster == "3c3c08f5-14b4-432c-b691-12531f3487b5" else "mec2"
-                requests.post(f"http://10.254.247.5:8000/switchMEC/{new_mec}", timeout=5)
-            except requests.RequestException as e:
-                logging.error(f"Failed to notify application about interface switch: {e}")
-    # ##################################################################################################
     
     # Disable the old kdu
     disable_old_kdu(meao, domain, cluster, node, mec_appd, appi, kdu_id)
@@ -164,28 +120,10 @@ def migrate_node(meao, mec_app, appi, kdu_id, domain, cluster, node):
             return {"status": 404, "error": "KDU Instance {} not found".format(kdu_id)}
 
         # Migrate the kdu instance to the new node
-        # TODO: This is for test purposes
-        # ##################################################################################################
-        try:
-            request_body = {"name": f"node-inst-init", "message": "MEAO instance Creation Init"}
-            alert_response = requests.post(f"http://10.254.247.5:8000/alert", json=request_body, timeout=5)
-            if alert_response.status_code != 200: logging.error(f"Failed to notify application: {alert_response.status_code} - {alert_response.text}")
-        except Exception as e:
-            logging.error(f"Failed to send request: {e}")
-        # ##################################################################################################
         meao.nbi_k8s_connector.migrate(ns_id, vnf_id, kdu_instance["kdu-instance"], kdu_instance_index, node)
 
         # Wait for the new kdu to be running
         wait_for_kdu_node(meao, ns_id, kdu_id, node)
-        # TODO: This is for test purposes
-        # ##################################################################################################
-        try:
-            request_body = {"name": f"node-inst-done", "message": "MEAO instance Creation done"}
-            alert_response = requests.post(f"http://10.254.247.5:8000/alert", json=request_body, timeout=5)
-            if alert_response.status_code != 200: logging.error(f"Failed to notify application: {alert_response.status_code} - {alert_response.text}")
-        except Exception as e:
-            logging.error(f"Failed to send request: {e}")
-        # ##################################################################################################
     else:
         msg_id = KafkaUtils.send_message(
             meao.producer,
@@ -204,16 +142,6 @@ def migrate_node(meao, mec_app, appi, kdu_id, domain, cluster, node):
         response = meao.wait_for_response(msg_id)
         if int(response["status"]) != 200:
             return {"status": int(response["status"]), "error": response["message"]}
-    
-    # TODO: This is for test purposes
-    # ##################################################################################################
-    try:
-        request_body = {"name": "migration-ready", "message": "MEAO Migration Ready", "value": None}
-        alert_response = requests.post(f"http://10.254.247.5:8000/alert", json=request_body, timeout=5)
-        if alert_response.status_code != 200: logging.error(f"Failed to notify application: {alert_response.status_code} - {alert_response.text}")
-    except Exception as e:
-        logging.error(f"Failed to send request: {e}")
-    # #################################################################################################
 
     # Change the appi instance to the new node and update the database
     appi["instances"][domain][cluster]["kdus"][kdu_id] = node
@@ -269,15 +197,6 @@ def new_network_service(meao, domain, cluster, node, appi, kdu_id):
         ns_id = out[0]
         vnf_id = get_osm_client().vnf.list(ns=ns_id)[0]["_id"]
     else:
-        # TODO: This is for test purposes
-        # ##################################################################################################
-        try:
-            request_body = {"name": "artefact-onboard-init", "message": "MEAO Artefact Onboard Init", "value": None}
-            alert_response = requests.post(f"http://10.254.247.5:8000/alert", json=request_body, timeout=5)
-            if alert_response.status_code != 200: logging.error(f"Failed to notify application: {alert_response.status_code} - {alert_response.text}")
-        except Exception as e:
-            logging.error(f"Failed to send request: {e}")
-        # ##################################################################################################
 
         message = {
             "federation_context_id": meao.federations_context_id.get(domain),
@@ -298,26 +217,6 @@ def new_network_service(meao, domain, cluster, node, appi, kdu_id):
         if int(response["status"]) != 200:
             return {"status": int(response["status"]), "error": response["message"]}
         
-        # TODO: This is for test purposes
-        # ##################################################################################################
-        try:
-            request_body = {"name": "artefact-onboard-done", "message": "MEAO Artefact Onboard Done", "value": None}
-            alert_response = requests.post(f"http://10.254.247.5:8000/alert", json=request_body, timeout=5)
-            if alert_response.status_code != 200: logging.error(f"Failed to notify application: {alert_response.status_code} - {alert_response.text}")
-        except Exception as e:
-            logging.error(f"Failed to send request: {e}")
-        # ##################################################################################################
-
-        # TODO: This is for test purposes
-        # ##################################################################################################
-        try:
-            request_body = {"name": "appi-inst-init", "message": "MEAO Appi Creation Init", "value": None}
-            alert_response = requests.post(f"http://10.254.247.5:8000/alert", json=request_body, timeout=5)
-            if alert_response.status_code != 200: logging.error(f"Failed to notify application: {alert_response.status_code} - {alert_response.text}")
-        except Exception as e:
-            logging.error(f"Failed to send request: {e}")
-        # ##################################################################################################
-        
         # Instantiate the new network service
         msg_id = KafkaUtils.send_message(
             meao.producer,
@@ -330,16 +229,6 @@ def new_network_service(meao, domain, cluster, node, appi, kdu_id):
         if int(response["status"]) != 201:
             DB._update(appi["_id"], "appis", {'details': "Migration failed", f"kdus.{kdu_id}.status": "running"}) # TODO: Colocar isto quando um erro ocorrer a migrar no resto das funcoes
             return {"status": int(response["status"]), "error": response["message"]}
-        
-        # TODO: This is for test purposes
-        # ##################################################################################################
-        try:
-            request_body = {"name": "appi-inst-done", "message": "MEAO Appi Creation Done", "value": None}
-            alert_response = requests.post(f"http://10.254.247.5:8000/alert", json=request_body, timeout=5)
-            if alert_response.status_code != 200: logging.error(f"Failed to notify application: {alert_response.status_code} - {alert_response.text}")
-        except Exception as e:
-            logging.error(f"Failed to send request: {e}")
-        # ##################################################################################################
 
         federated_appi_id = response.get("app_instance_id")
         ns_id = response["ns_id"]
@@ -387,25 +276,7 @@ def disable_old_kdu(meao, domain, cluster, node, mec_appd, appi, kdu_id):
         if not appi["instances"][old_instance["domain"]][old_instance["cluster"]]["kdus"]:
             # If there are no more kdu instances running in the old cluster, delete the network service and remove it from the appi
             appi["instances"][old_instance["domain"]].pop(old_instance["cluster"], None)
-            # TODO: This is for test purposes
-            # ##################################################################################################
-            try:
-                request_body = {"name": "old-appi-remove-init", "message": "MEAO Removing old appi Init", "value": None}
-                alert_response = requests.post(f"http://10.254.247.5:8000/alert", json=request_body, timeout=5)
-                if alert_response.status_code != 200: logging.error(f"Failed to notify application: {alert_response.status_code} - {alert_response.text}")
-            except Exception as e:
-                logging.error(f"Failed to send request: {e}")
-            # ##################################################################################################
             meao.nbi_k8s_connector.delete_network_service(old_instance["ns_id"], wait=True)
-            # TODO: This is for test purposes
-            # ##################################################################################################
-            try:
-                request_body = {"name": "old-appi-remove-done", "message": "MEAO Removing old done", "value": None}
-                alert_response = requests.post(f"http://10.254.247.5:8000/alert", json=request_body, timeout=5)
-                if alert_response.status_code != 200: logging.error(f"Failed to notify application: {alert_response.status_code} - {alert_response.text}")
-            except Exception as e:
-                logging.error(f"Failed to send request: {e}")
-            # ##################################################################################################
         else:
             # Disable the old kdu in the current domain if there are more kdu instances running in the old cluster
             meao.nbi_k8s_connector.disable_kdu(mec_appd["appd_id"], old_instance["ns_id"], [kdu_id])
@@ -414,15 +285,6 @@ def disable_old_kdu(meao, domain, cluster, node, mec_appd, appi, kdu_id):
             # If there are no more kdu instances running in the old cluster, delete the network service and remove it from the appi
             appi["instances"][old_instance["domain"]].pop(old_instance["cluster"], None)
 
-            # TODO: This is for test purposes
-            # ##################################################################################################
-            try:
-                request_body = {"name": "old-appi-remove-init", "message": "MEAO Removing old appi Init", "value": None}
-                alert_response = requests.post(f"http://10.254.247.5:8000/alert", json=request_body, timeout=5)
-                if alert_response.status_code != 200: logging.error(f"Failed to notify application: {alert_response.status_code} - {alert_response.text}")
-            except Exception as e:
-                logging.error(f"Failed to send request: {e}")
-            # ##################################################################################################
             msg_id = KafkaUtils.send_message(
                 meao.producer,
                 "federation_remove_appi",
@@ -431,15 +293,6 @@ def disable_old_kdu(meao, domain, cluster, node, mec_appd, appi, kdu_id):
                     "app_instance_id": old_instance["appi_id"],
                 }
             )
-            # TODO: This is for test purposes
-            # ##################################################################################################
-            try:
-                request_body = {"name": "old-appi-remove-done", "message": "MEAO Removing old done", "value": None}
-                alert_response = requests.post(f"http://10.254.247.5:8000/alert", json=request_body, timeout=5)
-                if alert_response.status_code != 200: logging.error(f"Failed to notify application: {alert_response.status_code} - {alert_response.text}")
-            except Exception as e:
-                logging.error(f"Failed to send request: {e}")
-            # ##################################################################################################
         else:
             msg_id = KafkaUtils.send_message(
                 meao.producer,
