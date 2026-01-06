@@ -1,5 +1,6 @@
 from src.utils.exceptions import handle_exceptions
 from src.utils.general import updateDict
+import logging
 
 @handle_exceptions
 def callback(meao, message):
@@ -23,4 +24,4 @@ def callback(meao, message):
         meao.federation_container_to_app = updateDict(meao.federation_container_to_app, container_to_app)
         
     except RuntimeError as e:
-        print("INFO: Exception while processing kafka messages: ", e)
+        logging.error(f"Exception while processing kafka messages: {e}")

@@ -7,6 +7,7 @@ import warnings
 import time
 from osmclient import client
 from osmclient.common.exceptions import ClientException, OsmHttpException
+import logging
 
 class NBIConnector:
     """
@@ -54,11 +55,11 @@ class NBIConnector:
             try:
                 return func(*args, **kwargs)
             except (OsmHttpException) as e:
-                print(f"An error occurred: {e}")
+                logging.error(f"An error occurred: {e}")
                 self.nbi_client = client.Client(host=self.osm_hostname, port=9999,sol005=True)
                 tries += 1
             except Exception as e:
-                print(f"An error occurred: {e}")
+                logging.error(f"An error occurred: {e}")
                 return None
     
 

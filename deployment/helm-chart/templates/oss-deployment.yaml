@@ -19,6 +19,8 @@ spec:
     spec:
       containers:
         - env:
+            - name: DOMAIN
+              value: '{{ .Values.domain }}'
             - name: KAFKA_PRODUCER_CONFIG
               value: '{{ .Values.kafka.KAFKA_PRODUCER_CONFIG | toJson }}'
             - name: KAFKA_CONSUMER_CONFIG

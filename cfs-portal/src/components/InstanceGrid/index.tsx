@@ -60,7 +60,6 @@ const InstanceGrid = ({ minimalConfig = false, instanceCount }: InstanceGridProp
     const [instanceData, setInstanceData] = useState<RowData[]>([]);
     const [expandedRows, setExpandedRows] = useState<{ [key: string]: boolean }>({});
     const [metrics, setMetrics] = useState<Metrics | null>(null);
-    // const [rowData, setRowData] = useState<RowData[]>([]);
 
     // Dialog variables
     const [loading, setLoading] = useState(true);
@@ -135,7 +134,6 @@ const InstanceGrid = ({ minimalConfig = false, instanceCount }: InstanceGridProp
                 });
             }
         }
-        console.log("Formatted Data: ", formattedData);
 
         return formattedData;
     }
@@ -409,38 +407,6 @@ const InstanceGrid = ({ minimalConfig = false, instanceCount }: InstanceGridProp
                             </Typography>
                         )}
                     </Box>
-                )
-            }
-        },
-        {
-            header: 'Latency',
-            accessorKey: 'latency',
-            enableColumnActions: false,
-            muiTableHeadCellProps: () => ({
-                align: 'center' as const,
-                sx: { minWidth: '100px', Width: '100px', maxWidth: '100px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'},
-            }),
-            muiTableBodyCellProps: () => ({
-                align: 'center' as const,
-                sx: { minWidth: '100px', Width: '100px', maxWidth: '100px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'},
-            }),
-            Cell: ({row}: any) => {
-                const latency: string = row.original.latency;
-                const color=getLoadColor(Number(latency));
-                return (
-                    <>
-                        {latency !== undefined && latency !== null ? (
-                            <Tooltip title={ latency }>
-                                <Typography variant="body2" noWrap sx={(theme) => ({width: '100%', overflow: 'hidden', textOverflow: 'ellipsis', color: theme.palette[color].main, fontWeight: 'bold'})}>
-                                    {latency}
-                                </Typography>
-                            </Tooltip>
-                        ) : (
-                            <Typography variant="body2" textAlign='center'>
-                                -
-                            </Typography>
-                        )}
-                    </>
                 )
             }
         },

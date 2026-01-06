@@ -9,12 +9,13 @@ from .callbacks.error_handler import responses
 
 class KafkaUtils:
     @staticmethod
-    def create_consumer(config: dict = {}, topics: list = []):
+    def create_consumer(config: dict = {}, topics: list = [], seek_to_end: bool = True):
         consumer = KafkaConsumer(
             **config,
             value_deserializer=lambda x: json.loads(x.decode("utf-8")),
         )
         consumer.subscribe(topics=topics)
+        
         return consumer
     
     @staticmethod

@@ -112,6 +112,8 @@ cfsPortal:
     image: ghcr.io/atnog/osm-mec/cfs-portal:main
     imagePullPolicy: Always
     restartPolicy: Always
+    env:
+      FEDERATION: True
   service:
     type: NodePort
     port: 3000

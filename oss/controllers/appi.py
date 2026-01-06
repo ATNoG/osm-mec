@@ -5,13 +5,14 @@ from utils.db import DB, db
 from utils.kafka import KafkaUtils
 from utils.osm import get_osm_client
 from views.appi import AppiView
-from . import kafka_producer_config, kafka_consumer_config
+from . import kafka_producer_config, kafka_consumer_config, domain
 
 
 class AppiController:
     def __init__(self):
         self.topics = ["terminate_app_pkg"]
         self.collection = "appis"
+        self.domain = domain
         self.producer = KafkaUtils.create_producer(kafka_producer_config)
         self.consumer = KafkaUtils.create_consumer(kafka_consumer_config, self.topics)
 
@@ -29,14 +30,28 @@ class AppiController:
         """
         if not is_valid_uuid(appi_id):
             raise cherrypy.HTTPError(404, "App instance not found")
-        return AppiView._get(get_osm_client().ns.get(appi_id))
+        return AppiView._get(DB._find(self.collection, {"appi_id": appi_id}, db=db))
+    
+    @cherrypy.tools.json_out()
+    def get_appi_detailed(self, appi_id):
+        """
+        /appis/{appi_id}/detailed (GET)
+        """
+        if not is_valid_uuid(appi_id):
+            raise cherrypy.HTTPError(404, "App instance not found")
+        
+        appi_data = DB._find(self.collection, {"appi_id": appi_id}, db=db)
+        if not appi_data:
+            raise cherrypy.HTTPError(404, "App instance not found")
+        
+        return AppiView._get_detailed(appi_data)
     
     @cherrypy.tools.json_out()
     def list_mec_appis(self):
         """
         /mec-appis (GET)
         """
-        mec_appis = DB._list(self.collection, db=db)
+        mec_appis = DB._list(self.collection, filter={"domain": self.domain}, db=db)
         for mec_appi in mec_appis:
             if '_id' in mec_appi:
                 mec_appi['_id'] = str(mec_appi['_id'])

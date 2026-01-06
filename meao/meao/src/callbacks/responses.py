@@ -19,4 +19,4 @@ def callback(meao, message):
         meao.waiting_responses[msg_id] = message
 
     except RuntimeError as e:
-        logging.info("Exception while processing kafka messages: ", e)
+        logging.info(f"Exception while processing kafka messages: {e}")

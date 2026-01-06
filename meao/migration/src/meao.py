@@ -107,22 +107,15 @@ class MEAO:
         self.consumer = KafkaUtils.create_consumer(config=self.kafka_consumer_conf, topics=self.topics)
 
         # Data tracking
-        self.mec_apps = {}
         self.appis = {}
         self.current_metrics = {}
         self.nodeSpecs = {}
-        self.federation_meh_metrics = {}
 
         # Logic tracking
         self.possible_migrations = {}
         self.migrating_apps = set()
         self.expected_resource_gains = {}
         self.waiting_responses = {}
-
-        # Tests
-        self.log = {}
-        with open("results.csv", "w") as log_file:
-            log_file.write("Metrics Collection,Metrics Reception,Migration Decision,Target Pod Initialization,Target Pod Ready,Source Pod Termination,Migration Completion in OSM\n")
 
     def run(self):
         """
@@ -172,19 +165,19 @@ class MEAO:
             return False
         
         kdu_current_node = next({"domain": domain, "cluster": cluster, "node": node} for domain in self.appis[appi_id]["instances"] for cluster in self.appis[appi_id]["instances"][domain] for kdu, node in self.appis[appi_id]["instances"][domain][cluster]["kdus"].items() if kdu == kdu_id)
-        
-        print("Migrating kdu {} from appi {} to node {} at cluster {} and domain {}".format(kdu_id, appi_id, finalTargetNode, cluster_id, domain))
+
+        logging.info(f"Migrating kdu {kdu_id} from appi {appi_id} to node {finalTargetNode} at cluster {cluster_id} and domain {domain}")
 
         # Trigger a migration in the MEAO
         message = {"appi_id": appi_id, "kdu_id": kdu_id, "domain": domain, "cluster_id": cluster_id, "node": finalTargetNode}
         msg_id = KafkaUtils.send_message(self.producer, "migrate_app", message)
 
         # Calculate the expected resources gain
-        expected_cpu_gain =  max(self.appis.get(appi_id, {}).get("migration_policy", {}).get(kdu_id, {}).get("cpu-criteria", {}).get("allocated-cpu", 0) - self.current_metrics.get(appi_id, {}).get(kdu_id, {}).get("metrics", {}).get("cpuUsage", 0), 0)
-        expected_mem_gain = max(self.appis.get(appi_id, {}).get("migration_policy", {}).get(kdu_id, {}).get("mem-criteria", {}).get("allocated-mem", 0) - self.current_metrics.get(appi_id, {}).get(kdu_id, {}).get("metrics", {}).get("memUsage", 0), 0)
+        expected_cpu_gain = max(self.appis.get(appi_id, {}).get("migration_policy", {}).get(kdu_id, {}).get("cpu-criteria", {}).get("allocated-cpu", 0), self.current_metrics.get(appi_id, {}).get(kdu_id, {}).get("metrics", {}).get("cpuUsage", 0))
+        expected_mem_gain = max(self.appis.get(appi_id, {}).get("migration_policy", {}).get(kdu_id, {}).get("mem-criteria", {}).get("allocated-mem", 0), self.current_metrics.get(appi_id, {}).get(kdu_id, {}).get("metrics", {}).get("memUsage", 0))
 
         # Add the expected resource gains so that the MEAO starts detecting the migration discrepancies
-        key = (domain, cluster_id, finalTargetNode)
+        key = (kdu_current_node["domain"], kdu_current_node["cluster"], kdu_current_node["node"])
         if key not in self.expected_resource_gains:
             self.expected_resource_gains[key] = {"cpu": 0, "mem": 0}
         self.expected_resource_gains[key]["cpu"] += expected_cpu_gain
@@ -194,6 +187,6 @@ class MEAO:
         self.migrating_apps.add((appi_id, kdu_id))
         self.waiting_responses[msg_id] = {"type": "migration", "app": (appi_id, kdu_id), "from": kdu_current_node, "to": {"domain": domain, "cluster": cluster_id, "node": finalTargetNode}, "expected_gain": {"cpu": expected_cpu_gain, "mem": expected_mem_gain}}
 
-        print("Expected gain: ", self.waiting_responses[msg_id]["expected_gain"])
+        logging.info(f"Expected gain: {self.waiting_responses[msg_id]['expected_gain']}")
 
         return True

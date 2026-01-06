@@ -1,4 +1,5 @@
 from src.utils.exceptions import handle_exceptions
+import logging
 
 @handle_exceptions
 def callback(meao, message):
@@ -15,4 +16,4 @@ def callback(meao, message):
         meao.federation_infrastructure_info.update(message.get("nodeSpecs", {}))
         
     except RuntimeError as e:
-        print("INFO: Exception while processing kafka messages: ", e)
+        logging.info(f"INFO: Exception while processing kafka messages: {e}")

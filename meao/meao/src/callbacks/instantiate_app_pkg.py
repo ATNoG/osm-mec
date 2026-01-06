@@ -40,12 +40,15 @@ def callback(meao, message):
         for vnf in config.get("additionalParamsForVnf"):
             for kdu in vnf.get("additionalParamsForKdu"):
                 kdus[kdu["kdu_name"]]["enable"] = kdu.get("enable", True)
+                kdus[kdu["kdu_name"]]["node-selector"] = kdu.get("node-selector", None)
 
         # Select the nodes for the active KDUs
         kdu_nodes = {}
         for kdu_name, kdu in kdus.items():
             if kdu.get("enable"):
-                kdu_nodes[kdu_name] = select_node(infrastructure_info=meao.infrastructure_info, vim_id=vim_id)
+                _pre_node_selector = kdu.get("node-selector") or {}
+                pre_selected_node = _pre_node_selector.get("kubernetes.io/hostname", None)
+                kdu_nodes[kdu_name] = select_node(infrastructure_info=meao.infrastructure_info, vim_id=vim_id, pre_selected_node=pre_selected_node)
                 if not kdu_nodes[kdu_name]:
                     return {"status": 404, "error": "No nodes available to satisfy all the requirements"}
                 kdu["status"] = "instantiating"
@@ -131,13 +134,13 @@ def callback(meao, message):
         thread = threading.Thread(target=check_appi_instantiation, args=(meao, {"_id": db_id, "appi_id": appi_id, "kdus": kdus, "instances": instances, "domain": meao.domain},))
         thread.start()
         
-        if original_domain != meao.domain:  # If the appi is being instantiated in a different domain, send the message to the federator
+        if original_domain and original_domain != meao.domain:  # If the appi is being instantiated in a different domain, send the message to the federator
             thread.join()
 
         return {"status": 201, "appi_id": appi_id}
 
 
-def select_node(infrastructure_info: dict, vim_id: str = None, strategy: str = 'random'):
+def select_node(infrastructure_info: dict, vim_id: str = None, pre_selected_node: str = None, strategy: str = 'random'):
     """
     Select a node based on the given strategy."
     """
@@ -153,6 +156,8 @@ def select_node(infrastructure_info: dict, vim_id: str = None, strategy: str = '
             continue
         domain = cluster_data.get("domain")
         for node_name, node_data in cluster_data.get("nodeSpecs", {}).items():
+            if pre_selected_node and node_name != pre_selected_node:
+                continue
             nodes.append((domain, cluster_id, node_name, node_data))
     
     if nodes == []:

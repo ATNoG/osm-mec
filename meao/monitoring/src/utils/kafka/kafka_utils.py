@@ -10,12 +10,19 @@ from kafka import KafkaConsumer, KafkaProducer
 
 class KafkaUtils:
     @staticmethod
-    def create_consumer(config: dict = {}, topics: list = []):
+    def create_consumer(config: dict = {}, topics: list = [], seek_to_end: bool = True):
         consumer = KafkaConsumer(
             **config,
             value_deserializer=lambda x: json.loads(x.decode("utf-8")),
         )
         consumer.subscribe(topics=topics)
+
+        if seek_to_end:
+            # Only consume new messages
+            consumer.poll(timeout_ms=1000)
+            for tp in consumer.assignment():
+                consumer.seek_to_end(tp)
+
         return consumer
     
     @staticmethod
@@ -42,7 +49,7 @@ class KafkaUtils:
         def consume_and_submit():
             for message in consumer:
                 if message.topic in callbacks:
-                    logging.info(f"Received message from topic {message.topic}: {message.value}")
+                    # logging.info(f"Received message from topic {message.topic}: {message.value}")
                     callback_function = callbacks[message.topic]
                     future = executor.submit(KafkaUtils._process_message, callback_function, data, message.value)
                     future.add_done_callback(lambda fut: result_queue.put(fut.result()))

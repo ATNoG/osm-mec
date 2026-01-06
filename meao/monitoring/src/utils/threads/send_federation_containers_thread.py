@@ -31,10 +31,10 @@ class SendFederationContainersThread:
 
                 # Kafka sending placeholder
                 KafkaUtils.send_message(self.producer, self.federation_container_to_app_topic, message)
-                logging.info("Sent message to Kafka topic {}: {}".format(self.federation_container_to_app_topic, message))
+                logging.info(f"Sent message to Kafka topic {self.federation_container_to_app_topic}: {message}")
 
                 time.sleep(self.federation_send_freq)
 
             except Exception as e:
-                print("INFO: Exception while sending container info: ", e)
+                logging.error(f"Exception while sending federation containers metrics: {e}")
                 continue

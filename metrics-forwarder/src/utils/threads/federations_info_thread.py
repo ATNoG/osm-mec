@@ -12,22 +12,22 @@ class FederationsInfoThread:
         self.sleep_time = sleep_time
         self.t = None
 
-        # TODO: The following code is purely a temporary solution to keep the work before integrating with the actual federation management system.
+        # TODO: The following code is a temporary solution. This should come from the federation creation process.
         # ======================================================================================
         self.partners_config = {
             "IT_AVEIRO": {
-                "bootstrap_servers": "10.255.41.50:31999",
+                "bootstrap_servers": "10.255.41.4:31999",
                 "security_protocol": "SASL_PLAINTEXT",
                 "sasl_mechanism": "PLAIN",
                 "sasl_plain_username": "user1",
-                "sasl_plain_password": "0eW6RwqFoC"
+                "sasl_plain_password": "IvndH8Si21"
             },
             "PARTNER": {
-                "bootstrap_servers": "10.255.41.35:31999",
+                "bootstrap_servers": "10.255.41.8:31999",
                 "security_protocol": "SASL_PLAINTEXT",
                 "sasl_mechanism": "PLAIN",
                 "sasl_plain_username": "user1",
-                "sasl_plain_password": "Ahc4mYsSv7"
+                "sasl_plain_password": "2jQd7t0Hfm"
             },
         }
         # ======================================================================================

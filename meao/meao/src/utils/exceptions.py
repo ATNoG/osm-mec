@@ -1,5 +1,5 @@
 from osmclient.common.exceptions import ClientException
-
+import logging
 
 def handle_exceptions(f):
     def wrapper(*args, **kw):
@@ -10,14 +10,14 @@ def handle_exceptions(f):
 
             return result
         except ClientException as e:
-            print("ClientException occurred:", e)
+            logging.error(f"ClientException occurred: {e}")
             return {
                 "msg_id": args[1].get("msg_id"),
                 "status": 500,
                 "error": "OSM: " + str(e),
             }
         except Exception as e:
-            print("An unexpected error occurred:", e)
+            logging.error(f"An unexpected error occurred: {e}")
             return {
                 "msg_id": args[1].get("msg_id"),
                 "status": 500,

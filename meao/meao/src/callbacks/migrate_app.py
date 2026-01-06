@@ -5,6 +5,8 @@ from src.utils.osm import get_osm_client
 from src.utils.capture_io import CaptureIO
 from src.utils.kafka.kafka_utils import KafkaUtils
 import time
+import requests
+import logging
 
 @handle_exceptions
 def callback(meao, message):
@@ -195,6 +197,7 @@ def new_network_service(meao, domain, cluster, node, appi, kdu_id):
         ns_id = out[0]
         vnf_id = get_osm_client().vnf.list(ns=ns_id)[0]["_id"]
     else:
+
         message = {
             "federation_context_id": meao.federations_context_id.get(domain),
             "app_pkg_id": appi.get("app_pkg_id"),
@@ -224,11 +227,13 @@ def new_network_service(meao, domain, cluster, node, appi, kdu_id):
         # wait for the new network service to be fully running
         response = meao.wait_for_response(msg_id)
         if int(response["status"]) != 201:
+            DB._update(appi["_id"], "appis", {'details': "Migration failed", f"kdus.{kdu_id}.status": "running"}) # TODO: Colocar isto quando um erro ocorrer a migrar no resto das funcoes
             return {"status": int(response["status"]), "error": response["message"]}
 
         federated_appi_id = response.get("app_instance_id")
         ns_id = response["ns_id"]
         vnf_id = response["vnf_id"]
+
 
     appi["instances"].setdefault(domain, {}).setdefault(cluster, {"appi_id": federated_appi_id, "ns_id": ns_id, "vnf_id": vnf_id, "kdus": {}})
 
@@ -271,7 +276,7 @@ def disable_old_kdu(meao, domain, cluster, node, mec_appd, appi, kdu_id):
         if not appi["instances"][old_instance["domain"]][old_instance["cluster"]]["kdus"]:
             # If there are no more kdu instances running in the old cluster, delete the network service and remove it from the appi
             appi["instances"][old_instance["domain"]].pop(old_instance["cluster"], None)
-            meao.nbi_k8s_connector.delete_network_service(old_instance["ns_id"])
+            meao.nbi_k8s_connector.delete_network_service(old_instance["ns_id"], wait=True)
         else:
             # Disable the old kdu in the current domain if there are more kdu instances running in the old cluster
             meao.nbi_k8s_connector.disable_kdu(mec_appd["appd_id"], old_instance["ns_id"], [kdu_id])
@@ -303,4 +308,3 @@ def disable_old_kdu(meao, domain, cluster, node, mec_appd, appi, kdu_id):
     # If there are no more clusters in the old domain, remove the domain from the appi
     if not appi["instances"][old_instance["domain"]]:
         appi["instances"].pop(old_instance["domain"], None)
-    

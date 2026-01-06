@@ -4,6 +4,8 @@ from src.utils.kafka.kafka_utils import KafkaUtils
 from src.utils.exceptions import handle_exceptions
 from src.utils.file_management import *
 from src.utils.osm import get_osm_client
+import time
+import logging
 
 @handle_exceptions
 def callback(meao, message):
@@ -33,6 +35,12 @@ def callback(meao, message):
                     }
                 )
         
+        # Wait for the application to be terminated in the remote domain
+        if meao.domain != appi["domain"]:
+            logging.info(f"Waiting for remote app instance to be terminated...")
+            wait_until_terminated(meao, network_services)
+            logging.info(f"Remote app instance terminated.")
+        
         DB._delete_by("appis", filter={"appi_id": appi_id})
         return {"status": 204, "msg_id": msg_id}
     
@@ -44,7 +52,7 @@ def get_all_ns(appi: dict):
     Join the data by domain and cluster to create the network services structure.
     """
     
-    instances = set( (domain, (appi["instances"][domain][cluster].get("appi_id", None), appi["instances"][domain][cluster]["ns_id"])) for domain in appi["instances"] for cluster in appi["instances"][domain] )
+    instances = [ (domain, (appi["instances"][domain][cluster].get("appi_id", None), appi["instances"][domain][cluster]["ns_id"])) for domain in appi["instances"] for cluster in appi["instances"][domain] ]
     return instances
 
 def get_appi_resources(appi: dict):
@@ -66,3 +74,32 @@ def get_appi_resources(appi: dict):
                         "allocated-mem": -appi["migration_policy"].get(kdu, {}).get("mem-criteria", {}).get("allocated-mem", 0),
                     })
     return resources
+
+def wait_until_terminated(meao, network_services):
+    """
+    Wait until the app instance is terminated.
+    """
+    
+    while True:
+        clusters_to_remove = []
+        for index, ns in enumerate(network_services):
+            if ns[0] != meao.domain:
+                clusters_to_remove.append(index)
+                continue
+            
+            # Get the NS instance status
+            ns_instance = meao.nbi_k8s_connector.callNBI(
+                meao.nbi_k8s_connector.nbi_client.ns.get,
+                name=ns[1][1]
+            )
+
+            # If the NS instance does not exist, it means it has been deleted
+            if not ns_instance:
+                clusters_to_remove.append(index)
+
+        # Remove the clusters that are already deployed
+        [network_services.pop(i) for i in clusters_to_remove]
+
+        # If there are no more clusters to check, break the loop, else wait a bit and check again
+        if len(network_services) <= 0: break
+        time.sleep(0.01)

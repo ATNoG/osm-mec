@@ -5,19 +5,37 @@ helm -n osm-mec uninstall osm-mec
 
 
 # Build and push the images
+echo ""; echo "Building and pushing the images to the local registry..."
+echo "-----------------------------------------------"
+echo ""; echo "building cfs-portal..."
 docker build -t localhost:5000/cfs-portal:latest cfs-portal
+echo ""; echo "building meao..."
 docker build -t localhost:5000/meao:latest meao/meao
+echo ""; echo "building meao-monitoring..."
 docker build -t localhost:5000/meao-monitoring:latest meao/monitoring
+echo ""; echo "building meao-migration..."
 docker build -t localhost:5000/meao-migration:latest meao/migration
+echo ""; echo "building oss..."
 docker build -t localhost:5000/oss:latest oss
+echo ""; echo "building metrics-forwarder..."
 docker build -t localhost:5000/forwarder:latest metrics-forwarder
+echo "-----------------------------------------------"
 
+echo ""; echo "Pushing the images to the local registry..."
+echo "-----------------------------------------------"
+echo ""; echo "pushing cfs-portal..."
 docker push localhost:5000/cfs-portal:latest
+echo ""; echo "pushing meao..."
 docker push localhost:5000/meao:latest
+echo ""; echo "pushing meao-monitoring..."
 docker push localhost:5000/meao-monitoring:latest
+echo ""; echo "pushing meao-migration..."
 docker push localhost:5000/meao-migration:latest
+echo ""; echo "pushing oss..."
 docker push localhost:5000/oss:latest
+echo ""; echo "pushing metrics-forwarder..."
 docker push localhost:5000/forwarder:latest
+echo "-----------------------------------------------"
 
 
 # Get the needed Information
@@ -32,8 +50,11 @@ KAFKA_CONSUMER_PASSWORD=$(kubectl get secret -n osm kafka-user-passwords -o json
 
 
 # Install the new version of the OSM-MEC
-helm -n osm-mec upgrade --install osm-mec deployment/helm-chart \
+helm -n osm-mec upgrade --install osm-mec deployment/helm-chart --create-namespace \
+    --set domain="IT_AVEIRO" \
     --set cfsPortal.deployment.image=localhost:5000/cfs-portal:latest \
+    --set cfsPortal.enabled=true \
+    --set cfsPortal.deployment.env.FEDERATION=true \
     --set meao.deployment.image=localhost:5000/meao:latest \
     --set meao.monitoring.deployment.image=localhost:5000/meao-monitoring:latest \
     --set meao.migration.deployment.image=localhost:5000/meao-migration:latest \

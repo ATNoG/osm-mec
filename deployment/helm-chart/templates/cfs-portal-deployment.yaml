@@ -27,6 +27,8 @@ spec:
             value: "{{ .Values.oss.service.oss_port }}"
           - name: REACT_APP_WS_SOCKET_PORT
             value: "{{ .Values.oss.service.ws_port }}"
+          - name: REACT_APP_FEDERATION
+            value: "{{ .Values.cfsPortal.deployment.env.FEDERATION }}"
           image: {{ .Values.cfsPortal.deployment.image }}
           imagePullPolicy: {{ .Values.cfsPortal.deployment.imagePullPolicy }}
           name: cfs-portal

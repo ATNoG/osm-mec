@@ -4,6 +4,7 @@ import os
 import queue
 import threading
 import time
+import logging
 
 import websockets
 from cherrypy.process import plugins
@@ -30,7 +31,7 @@ class WebSocketServiceThread(plugins.SimplePlugin):
             try:
                 asyncio.run(send_metrics())
             except Exception as e:
-                print(f"Could not start WebSocket server: {e}")
+                logging.error(f"Could not start WebSocket server: {e}")
                 time.sleep(5)  # delay before attempting to restart
 
 
@@ -45,7 +46,7 @@ async def send_metrics():
                         await websocket.send(json.dumps(metrics))
                 await asyncio.sleep(0.1)
             except Exception as e:
-                print(f"Error in sending metrics: {e}")
+                logging.error(f"Error in sending metrics: {e}")
                 break  # exit the loop if there is an error
 
 
@@ -55,6 +56,6 @@ async def receive_connection(websocket, path):
         async for message in websocket:
             pass
     except Exception as e:
-        print(f"Error in WebSocket: {e}")
+        logging.error(f"Error in WebSocket: {e}")
     finally:
         ws.remove(websocket)
