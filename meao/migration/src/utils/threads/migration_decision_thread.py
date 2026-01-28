@@ -21,15 +21,18 @@ class MigrationDecisionThread:
 
     def migration_decision(self):
         while True:
+            logging.debug(f"New migration decision loop")
             try:
                 for appi_id in list(self.meao.appis):
                     for kdu_id, migration_policy in self.meao.appis[appi_id]["migration_policy"].items():
                         # Check if the appi is already migrating
                         if (appi_id, kdu_id) in self.meao.migrating_apps:
+                            logging.debug(f"f{(appi_id, kdu_id)} already migrating")
                             continue
                         
                         # Check if the kdu is enabled or not
                         if not self.meao.appis.get(appi_id, {}).get("kdus", {}).get(kdu_id, {}).get("enable", False):
+                            logging.debug(f"f{(appi_id, kdu_id)} not enabled")
                             continue
                         
                         kdu_current_node = next({"domain": domain, "cluster": cluster, "node": node} for domain in self.meao.appis[appi_id]["instances"] for cluster in self.meao.appis[appi_id]["instances"][domain] for kdu, node in self.meao.appis[appi_id]["instances"][domain][cluster]["kdus"].items() if kdu == kdu_id)
@@ -37,6 +40,7 @@ class MigrationDecisionThread:
 
                         # Check if there are metrics to make a decision
                         if not kdu_current_metrics:
+                            logging.debug(f"No current metrics")
                             continue
 
                         # Check the need for migration based on the resources migration policy
@@ -45,6 +49,7 @@ class MigrationDecisionThread:
                             ("enabled" in migration_policy and migration_policy["enabled"]) and
                             ("cpu-criteria" in migration_policy or "mem-criteria" in migration_policy)
                         ):
+                            logging.debug(f"Checking resource migration")
                             resource_migration_need = self.check_resource_migration_need(kdu_id, migration_policy, kdu_current_node)
 
                         # Check the need for migration based on the latency migration policy
@@ -57,6 +62,7 @@ class MigrationDecisionThread:
 
                         # If all of the migration policies are satisfied, then I do not need to migrate
                         if not resource_migration_need and not latency_migration_need:
+                            logging.debug(f"No migration needed")
                             continue
                         logging.info(f"I need to migrate the appi {appi_id} kdu {kdu_id}")
 
@@ -168,12 +174,15 @@ class MigrationDecisionThread:
         kdu_cpu_migration_policy = migration_policy["cpu-criteria"]
         kdu_mem_migration_policy = migration_policy["mem-criteria"]
 
+        logging.debug(f"{kdu_id} migration policy {kdu_mem_migration_policy}")
+
         # Get node available resources
         if not self.meao.nodeSpecs.get(kdu_current_node["cluster"], {"nodeSpecs": {}})["nodeSpecs"].get(kdu_current_node["node"], {}).get("available-cpu", None):
             logging.error(f"Available cpu not found for node: {kdu_current_node['node']}")
             return False
         available_node_cpu = self.meao.nodeSpecs[kdu_current_node["cluster"]]["nodeSpecs"][kdu_current_node["node"]]["available-cpu"] + self.meao.expected_resource_gains.get((kdu_current_node["domain"], kdu_current_node["cluster"], kdu_current_node["node"]), {}).get("cpu", 0)
         available_node_mem = self.meao.nodeSpecs[kdu_current_node["cluster"]]["nodeSpecs"][kdu_current_node["node"]]["available-mem"] + self.meao.expected_resource_gains.get((kdu_current_node["domain"], kdu_current_node["cluster"], kdu_current_node["node"]), {}).get("mem", 0)
+        logging.debug(f"{kdu_id} available mem in node {kdu_current_node} {available_node_mem} and surge {kdu_mem_migration_policy.get('mem-surge-capacity', 0)} ({self.meao.nodeSpecs[kdu_current_node['cluster']]['nodeSpecs'][kdu_current_node['node']]['available-mem']}, {self.meao.expected_resource_gains.get((kdu_current_node['domain'], kdu_current_node['cluster'], kdu_current_node['node']), {}).get('mem', 0)})")
 
         # Check if the node has enough resources to fulfill the cpu_surge_capacity
         if kdu_cpu_migration_policy.get("cpu-surge-capacity", 0) > available_node_cpu:
@@ -188,6 +197,7 @@ class MigrationDecisionThread:
         # Check if the node has enough resources to fulfill the mem_surge_capacity
         if kdu_mem_migration_policy.get("mem-surge-capacity", 0) > available_node_mem:
             if kdu_id in self.meao.possible_migrations and "mem" in self.meao.possible_migrations[kdu_id]:
+                logging.debug(f"{kdu_id} possible migrations difference {time.time() - self.meao.possible_migrations[kdu_id]['mem']}")
                 if time.time() - self.meao.possible_migrations[kdu_id]["mem"] > kdu_mem_migration_policy.get("mem-threshold-time", 0):
                     return True
             else:

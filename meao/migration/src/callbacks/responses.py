@@ -21,13 +21,13 @@ def callback(meao, message):
             appi_id, kdu_id = meao.waiting_responses[msg_id]["app"]
             from_node = meao.waiting_responses[msg_id]["from"]
 
-            # Remove from the response waiting list
-            meao.migrating_apps.discard((appi_id, kdu_id))
-            meao.waiting_responses.pop(msg_id)
-
             # Remove the appi from the expected resource gains as it already completed the migration
             meao.expected_resource_gains[(from_node["domain"], from_node["cluster"], from_node["node"])]["cpu"] -= meao.waiting_responses[msg_id]["expected_gain"]["cpu"]
             meao.expected_resource_gains[(from_node["domain"], from_node["cluster"], from_node["node"])]["mem"] -= meao.waiting_responses[msg_id]["expected_gain"]["mem"]
+
+            # Remove from the response waiting list
+            meao.migrating_apps.discard((appi_id, kdu_id))
+            meao.waiting_responses.pop(msg_id)
 
             # Handle the response
             if message["status"] == 200:
