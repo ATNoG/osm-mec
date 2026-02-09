@@ -215,8 +215,22 @@ def new_network_service(meao, domain, cluster, node, appi, kdu_id):
         # wait for the artifact to be uploaded to the partner domain
         response = meao.wait_for_response(msg_id)
         if int(response["status"]) != 200:
+            DB._update(appi["_id"], "appis", {'details': "Migration failed", f"kdus.{kdu_id}.status": "running"}) # TODO: Colocar isto quando um erro ocorrer a migrar no resto das funcoes
             return {"status": int(response["status"]), "error": response["message"]}
-        
+
+        # onboard the new network service
+        msg_id = KafkaUtils.send_message(
+            meao.producer,
+            "federation_new_app",
+            message
+        )
+
+        # wait for the artifact to be onboarded to the partner domain
+        response = meao.wait_for_response(msg_id)
+        if int(response["status"]) != 200:
+            DB._update(appi["_id"], "appis", {'details': "Migration failed", f"kdus.{kdu_id}.status": "running"}) # TODO: Colocar isto quando um erro ocorrer a migrar no resto das funcoes
+            return {"status": int(response["status"]), "error": response["message"]}
+
         # Instantiate the new network service
         msg_id = KafkaUtils.send_message(
             meao.producer,

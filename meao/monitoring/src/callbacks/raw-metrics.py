@@ -9,7 +9,9 @@ def callback(meao, message):
     """
     Processes raw metrics related to each node and container
     """
-    
+
+    # logging.info(f"\n\n\nReceived message {message}\n\n\n")
+
     # process the message
     cName = message["container_Name"]
 
