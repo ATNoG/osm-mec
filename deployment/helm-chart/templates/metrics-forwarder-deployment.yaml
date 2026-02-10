@@ -32,5 +32,12 @@ spec:
               value: '{{ .Values.mongo.password }}'
             - name: MONGO_USER
               value: '{{ .Values.mongo.username }}'
+          volumeMounts:
+            - name: partners-config
+              mountPath: /etc/partners
       restartPolicy: {{ .Values.metricsForwarder.deployment.restartPolicy }}
+      volumes:
+        - name: partners-config
+          configMap:
+            name: partners-config
 {{- end }}

@@ -1,3 +1,4 @@
+import json
 import logging
 import threading
 import time
@@ -15,23 +16,18 @@ class FederationsInfoThread:
 
         # TODO: The following code is a temporary solution. This should come from the federation creation process.
         # ======================================================================================
-        self.partners_config = {
-            "IT_AVEIRO": {
-                "bootstrap_servers": "10.255.41.197:31999",
-                "security_protocol": "SASL_PLAINTEXT",
-                "sasl_mechanism": "PLAIN",
-                "sasl_plain_username": "user1",
-                "sasl_plain_password": "A5WA7YwIRe"
-            },
-            "NOS": {
-                "bootstrap_servers": "10.255.41.185:31999",
-                "security_protocol": "SASL_PLAINTEXT",
-                "sasl_mechanism": "PLAIN",
-                "sasl_plain_username": "user1",
-                "sasl_plain_password": "UIqNLtSTxf"
-            },
-        }
+        self.partners_config = self._load_partners_config()
         # ======================================================================================
+
+    def _load_partners_config(self):
+        """Load partners configuration from a JSON file"""
+        try:
+            with open('/etc/partners/partners.json', 'r') as f:
+                return json.load(f)
+        except Exception as e:
+            logging.error(f"Error loading partners config: {e}")
+            # Return empty dict as fallback
+            return {}
 
     def start(self):
         """Plugin entrypoint"""

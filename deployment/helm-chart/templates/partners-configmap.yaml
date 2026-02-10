@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: partners-config
+  labels:
+    app: {{ .Values.metricsForwarder.name }}
+data:
+  partners.json: |
+    {{ .Values.metricsForwarder.partnersConfig | toJson }}

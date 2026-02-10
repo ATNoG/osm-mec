@@ -157,3 +157,16 @@ metricsForwarder:
     ports:
       - containerPort: 8000
         protocol: TCP
+  partnersConfig:
+    IT_AVEIRO:
+      bootstrap_servers: "10.255.41.197:31999"
+      security_protocol: "SASL_PLAINTEXT"
+      sasl_mechanism: "PLAIN"
+      sasl_plain_username: "user1"
+      sasl_plain_password: "A5WA7YwIRe"
+    NOS:
+      bootstrap_servers: "10.255.41.185:31999"
+      security_protocol: "SASL_PLAINTEXT"
+      sasl_mechanism: "PLAIN"
+      sasl_plain_username: "user1"
+      sasl_plain_password: "UIqNLtSTxf"
